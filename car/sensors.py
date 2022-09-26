@@ -9,7 +9,19 @@ base_sensor_specification = {
     'image_size_x': str(400.0),
     'image_size_y': str(300.0)
 }
+
 top_sensor_types = ['sensor.camera.semantic_segmentation']
+
+
+top_offsets = {
+    'hd1': {'x':0, 'y': 0, 'z':40, 'pitch':-90, 'yaw': 0, 'roll':0},
+}
+
+top_callbacks = {
+    'hd1': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'hd1')),
+}
+
+
 
 model3_base_offsets = {
     'front': {'x':.4, 'y': 0, 'z':1.5, 'pitch':0, 'yaw': 0, 'roll':0},
@@ -59,7 +71,7 @@ class CarEquipment:
     def build_sensors(self, sensor_class, sensor_type, specification, offsets):
         assert sensor_class in ['top', 'base']
         if sensor_class == 'top':
-            self.top_sensors = self.__add_top_sensors(sensor_type, specification, offsets)
+            self.top_sensors = self.__add_base_sensors(sensor_type, specification, offsets)
         else:
             self.base_sensors = self.__add_base_sensors(sensor_type, specification, offsets)
 
@@ -74,7 +86,7 @@ class CarEquipment:
         while True:
             # # Imshow renders sensor data to display
             layout = layout_func(args)
-            cv2.imshow('Sem Car Camera', layout)
+            cv2.imshow(name, layout)
             
             # Quit if user presses 'q'
             if cv2.waitKey(1) == ord('q'):
