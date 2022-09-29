@@ -8,6 +8,7 @@ __pycache__/
 
 # Custom
 scenario_runner-0.9.13
+CARLA_0.9.13
 
 # Distribution / packaging
 .Python
