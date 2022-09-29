@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Custom
+scenario_runner-0.9.13
+
 # Distribution / packaging
 .Python
 build/
