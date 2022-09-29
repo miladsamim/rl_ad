@@ -1,4 +1,4 @@
-$env:CARLA_ROOT = 'C:\Users\test\Documents\driving\CARLA_0.9.13\WindowsNoEditor'
+$env:CARLA_ROOT = 'C:\Users\test\Documents\driving\rl_ad\CARLA_0.9.13\WindowsNoEditor'
 $env:SCENARIO_RUNNER_ROOT = 'C:\Users\test\Documents\driving\rl_ad\scenario_runner'
 $env:PYTHONPATH = "$env:Path;$env:CARLA_ROOT\PythonAPI\carla"
 # set PYTHONPATH=%PYTHONPATH%;%CARLA_ROOT%\PythonAPI\carla
