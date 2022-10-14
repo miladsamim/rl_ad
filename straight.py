@@ -6,7 +6,11 @@ import random
 import py_trees
 import carla
 
+from agents.navigation.local_planner import RoadOption
+
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
+from srunner.tools.route_manipulation import interpolate_trajectory
+from srunner.scenarios.route_scenario import convert_transform_to_location
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
                                                                       StopVehicle,
                                                                       LaneChange,
@@ -16,6 +20,8 @@ from srunner.scenariomanager.scenarioatomics.atomic_criteria import CollisionTes
 from srunner.scenariomanager.scenarioatomics.atomic_trigger_conditions import InTriggerDistanceToVehicle, StandStill, InTriggerDistanceToLocation
 from srunner.scenarios.basic_scenario import BasicScenario
 from srunner.tools.scenario_helper import get_waypoint_in_distance
+
+SECONDS_GIVEN_PER_METERS = 0.4 
 
 
 class StraightDriving(BasicScenario):
@@ -28,19 +34,93 @@ class StraightDriving(BasicScenario):
         self.timeout = timeout
         self._map = CarlaDataProvider.get_map()
         self._reference_waypoint = self._map.get_waypoint(config.trigger_points[0].location)
-        self._distance = 100
+        self._distance = 400
+        
+        self._update_route(world, config, debug_mode)
+        
         super(StraightDriving, self).__init__("Straight",
                                         ego_vehicles,
                                         config,
                                         world,
                                         debug_mode,
                                         criteria_enable=criteria_enable)
+    
+    # Agent Scenario Tool
+    def _update_route(self, world, config, debug_mode):
+        start_location = self._reference_waypoint.transform.location
+        self.end_waypoint, _ = get_waypoint_in_distance(self._reference_waypoint, self._distance)
+        end_location = self.end_waypoint.transform.location
+        gps_route, route = self._get_routes(start_location, end_location)
+        
+        self.route = route 
+        CarlaDataProvider.set_ego_vehicle_route(convert_transform_to_location(self.route))
+
+        if config.agent: 
+            config.agent.set_global_plan(gps_route, self.route)            
+        
+        self.timeout = self._estimate_route_timeout()
+
+        # Print route in debug mode
+        if debug_mode:
+            self._draw_waypoints(world, self.route, vertical_shift=0.1, persistency=50000.0)
+
+    # Agent Scenario Tool
+    def _estimate_route_timeout(self):
+        """
+        Estimate the duration of the route
+        """
+        route_length = 0.0  # in meters
+
+        prev_point = self.route[0][0]
+        for current_point, _ in self.route[1:]:
+            dist = current_point.location.distance(prev_point.location)
+            route_length += dist
+            prev_point = current_point
+
+        return int(SECONDS_GIVEN_PER_METERS * route_length)
+
+    # Agent Scenario Tool
+    def _get_routes(self, start_loc, end_location, hop_resolution=1.0):    
+        # grp = GlobalRoutePlanner(CarlaDataProvider.get_map(), hop_resolution)
+        # route = grp.trace_route(start_loc, end_location)
+        # trajectory = get_trajectory_from_route(route)
+        gps_route, route = interpolate_trajectory([start_loc, end_location], hop_resolution=hop_resolution)
+        return gps_route, route 
+    
+    # Agent Scenario Tool
+    def _draw_waypoints(self, world, waypoints, vertical_shift, persistency=-1):
+        """
+        Draw a list of waypoints at a certain height given in vertical_shift.
+        """
+        for w in waypoints:
+            wp = w[0].location + carla.Location(z=vertical_shift)
+
+            if w[1] == RoadOption.LEFT:  # Yellow
+                color = carla.Color(255, 255, 0)
+            elif w[1] == RoadOption.RIGHT:  # Cyan
+                color = carla.Color(0, 255, 255)
+            elif w[1] == RoadOption.CHANGELANELEFT:  # Orange
+                color = carla.Color(255, 64, 0)
+            elif w[1] == RoadOption.CHANGELANERIGHT:  # Dark Cyan
+                color = carla.Color(0, 64, 255)
+            elif w[1] == RoadOption.STRAIGHT:  # Gray
+                color = carla.Color(128, 128, 128)
+            else:  # LANEFOLLOW
+                color = carla.Color(0, 255, 0)  # Green
+
+            world.debug.draw_point(wp, size=0.1, color=color, life_time=persistency)
+
+        world.debug.draw_point(waypoints[0][0].location + carla.Location(z=vertical_shift), size=0.2,
+                               color=carla.Color(0, 0, 255), life_time=persistency)
+        world.debug.draw_point(waypoints[-1][0].location + carla.Location(z=vertical_shift), size=0.2,
+                               color=carla.Color(255, 0, 0), life_time=persistency)
+
 
     def _initialize_actors(self, config):
         """
         Custom initialization
         """
-        end_waypoint, _ = get_waypoint_in_distance(self._reference_waypoint, self._distance)
+        end_waypoint = self.end_waypoint#, _ = get_waypoint_in_distance(self._reference_waypoint, self._distance)
         end_transform = end_waypoint.transform
         end_transform.location.z += 0.5
         ego_vehicle = CarlaDataProvider.request_new_actor('vehicle.tesla.model3', end_transform)
@@ -57,7 +137,7 @@ class StraightDriving(BasicScenario):
         """
 
         # Ego vehicle must drive unto end point 
-        end_waypoint, _ = get_waypoint_in_distance(self._reference_waypoint, self._distance)
+        end_waypoint = self.end_waypoint#, _ = get_waypoint_in_distance(self._reference_waypoint, self._distance)
         end_transform = end_waypoint.transform
         end_transform.location.z += 0.5
 

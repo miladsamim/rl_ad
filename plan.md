@@ -8,11 +8,13 @@
 - :heavy_check_mark: set up first simple straight driving scenario
 
 ## Agent Controller
-- explore a way to connnect a control to simulation
+- :heavy_check_mark: explore a way to connnect a control to simulation
 - extend python scenarios to handle agents, check where the agent sets up its route gps info, and compare with route approach
-    - make route builder
-    - adapt scenario_runner, add agent1 parameter
+    - :heavy_check_mark: make route builder
+    - :heavy_check_mark: adapt scenario_runner, add agent1 parameter
+    - make simple slowly forward driving agent
     - add criterias to agent
+    - make a detector to check passed waypoints on route
     - check that all data wanted criteria, input data is available for the agent
 - build a first simple controller 
 
