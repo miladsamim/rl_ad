@@ -12,7 +12,7 @@
 - extend python scenarios to handle agents, check where the agent sets up its route gps info, and compare with route approach
     - :heavy_check_mark: make route builder
     - :heavy_check_mark: adapt scenario_runner, add agent1 parameter
-    - make simple slowly forward driving agent
+    - :heavy_check_mark: make simple slowly forward driving agent
     - add criterias to agent
     - make a detector to check passed waypoints on route
     - check that all data wanted criteria, input data is available for the agent
