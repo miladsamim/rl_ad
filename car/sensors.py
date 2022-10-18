@@ -3,7 +3,7 @@ import carla
 import cv2
 
 
-base_sensor_types = ['sensor.camera.semantic_segmentation']
+base_sensor_types = ['sensor.camera.semantic_segmentation', 'sensor.camera.rgb']
 base_sensor_specification = {
     'fov': str(100.0),
     'image_size_x': str(400.0),
@@ -19,6 +19,25 @@ top_offsets = {
 
 top_callbacks = {
     'hd1': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'hd1')),
+}
+
+
+over_offsets = {
+    'o1': {'x':0, 'y': 0, 'z':2.2, 'pitch':0, 'yaw': 0, 'roll':0},
+    'o2': {'x':0, 'y': 0, 'z':2.2, 'pitch':0, 'yaw': 60, 'roll':0},
+    'o3': {'x':0, 'y': 0, 'z':2.2, 'pitch':0, 'yaw': 120, 'roll':0},
+    'o4': {'x':0, 'y': 0, 'z':2.2, 'pitch':0, 'yaw': 180, 'roll':0},
+    'o5': {'x':0, 'y': 0, 'z':2.2, 'pitch':0, 'yaw': 240, 'roll':0},
+    'o6': {'x':0, 'y': 0, 'z':2.2, 'pitch':0, 'yaw': 300, 'roll':0},
+}
+
+over_callbacks = {
+    'o1': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'o1')),
+    'o2': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'o2')),
+    'o3': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'o3')),
+    'o4': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'o4')),
+    'o5': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'o5')),
+    'o6': lambda sensor, callback, buffer: sensor.listen(lambda data: callback(data, buffer, 'o6')),
 }
 
 
@@ -120,6 +139,9 @@ class CarEquipment:
 
     def sem_callback(self, image, data_dict, key):
         image.convert(carla.ColorConverter.CityScapesPalette)
+        data_dict[key] = np.reshape(np.copy(image.raw_data), (image.height, image.width, 4))
+
+    def rgb_callback(self, image, data_dict, key):
         data_dict[key] = np.reshape(np.copy(image.raw_data), (image.height, image.width, 4))
 
     def __opt_callback(self, data, data_dict, key):
