@@ -15,10 +15,10 @@
     - :heavy_check_mark: make simple slowly forward driving agent
     - :heavy_check_mark: check that all data wanted criteria, input data is available for the agent
     - :heavy_check_mark: add criterias to agent
-    - agent needs access to scenario, to assess the criterias for training.
+    - :heavy_check_mark: agent needs access to scenario, to assess the criterias for training.
         - the trainer of the agent will use it to compute rewards, terminate the scenario etc.
-    - make a detector to check passed waypoints on route
-- build a first simple controller 
+    - :heavy_check_mark: make a detector to check passed waypoints on route
+- :heavy_check_mark: build a first simple controller 
 
 ## First evaluation
 - setup SAC controller to learn straight driving
