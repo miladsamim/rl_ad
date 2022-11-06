@@ -100,6 +100,13 @@ class DQN_Agent:
         q_value = self.dqn(state_batch)
         q_value = q_value.gather(1, action_batch)
 
+        loss = self.criterion(q_value, q_value_targets)
+
+        self.optim.zero_grad()
+        loss.backward()
+        self.optim.step()
+        
+
     # Description: Chooses action wrt an e-greedy policy. 
     # Parameters:
     # - state: 		Tensor representing a single state
