@@ -6,6 +6,7 @@ import numpy as np
 import torch 
 import torch.nn as nn 
 import torch.nn.functional as F 
+from torch.utils.tensorboard import SummaryWriter
 import random
 import os
 import subprocess
@@ -50,6 +51,7 @@ class DQN_Agent:
                  target_update_frequency, discount=0.99, delta=1, model_name=None, architecture_args=(4,5)):
         self.env = environment
         self.action_size = self.env.action_space_size
+        self.avg_reward = None
         self.q_grid = None
         self.dqn = architecture(*architecture_args).to(DEVICE)
         self.target_dqn = architecture(*architecture_args).to(DEVICE)
@@ -61,6 +63,7 @@ class DQN_Agent:
 
         self.model_path = os.path.dirname(os.path.realpath(__file__)) + '/models/' + model_name if model_name else str(self.env)
         self.log_path = self.model_path + '/log'
+        self.writer = SummaryWriter(self.log_path)
 
         # Training parameters setup
         self.target_update_frequency = target_update_frequency
@@ -80,11 +83,11 @@ class DQN_Agent:
     # Output: None
     def experience_replay(self):
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = self.replay_memory.get_mini_batch(self.training_metadata)
-        state_batch = torch.tensor(state_batch, dtype=torch.float32).to(DEVICE)
-        action_batch = torch.tensor(action_batch, dtype=torch.int64).argmax(dim=1,keepdim=True).to(DEVICE)
-        reward_batch = torch.tensor(reward_batch, dtype=torch.float32).unsqueeze(1).to(DEVICE)
-        next_state_batch = torch.tensor(next_state_batch, dtype=torch.float32).to(DEVICE)
-        done_batch = torch.tensor(done_batch, dtype=torch.float32).unsqueeze(1).to(DEVICE)
+        state_batch = torch.tensor(np.array(state_batch), dtype=torch.float32).to(DEVICE)
+        action_batch = torch.tensor(np.array(action_batch), dtype=torch.int64).argmax(dim=1,keepdim=True).to(DEVICE)
+        reward_batch = torch.tensor(np.array(reward_batch), dtype=torch.float32).unsqueeze(1).to(DEVICE)
+        next_state_batch = torch.tensor(np.array(next_state_batch), dtype=torch.float32).to(DEVICE)
+        done_batch = torch.tensor(np.array(done_batch), dtype=torch.float32).unsqueeze(1).to(DEVICE)
 
         with torch.no_grad():
             self.dqn.eval() # don't use dropout when estimating targets
@@ -145,7 +148,7 @@ class DQN_Agent:
             done = False
             epsilon = self.explore_rate.get(self.training_metadata)
             alpha = self.learning_rate
-            print("Episode {0}/{1} \t Epsilon: {2} \t Alpha(lr): {3}".format(episode, self.training_metadata.num_episodes, epsilon, alpha))
+            print("Episode {0}/{1} \t Epsilon: {2:.2f} \t Alpha(lr): {3}".format(episode, self.training_metadata.num_episodes, epsilon, alpha))
             episode_frame = 0
             episode_reward =  0
             while not done:
@@ -179,15 +182,22 @@ class DQN_Agent:
             if (episode % EVAL_FREQ == 0) and (episode != 0):
                 score, std, rewards = self.test(num_test_episodes=5, visualize=True)
                 print('{0} +- {1}'.format(score, std))
-                # self.writer.add_summary(self.sess.run(self.test_summary,
-                #                                       feed_dict={self.test_score: score}), episode / EVAL_FREQ)
+                self.writer.add_scalar('Test Reward (5 eps.)', score, episode / EVAL_FREQ)
+                self.writer.add_scalar('Test Reward Std (5 eps.)', std, episode / EVAL_FREQ)
                 if episode % SAVE_FREQ == 0:
                     self.save(os.join(self.model_path+f'_{episode}.pt'))
                 
-            print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | avg q value {avg_q} |\
-                    Reward {episode_reward} | Frames {episode_frame}')
+            print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | avg q value {avg_q} | Reward {episode_reward:.2f} | Frames {episode_frame}')
 
-            # self.writer.add_summary(self.sess.run(self.training_summary, feed_dict={self.avg_q: avg_q}), episode)
+            self.writer.add_scalar('Avg. Q val', avg_q, episode)
+            self.writer.add_scalar('epsilon', epsilon, episode)
+            self.writer.add_scalar('lr', alpha, episode)
+            self.writer.add_scalar('Reward', episode_reward, episode)
+            if not self.avg_reward:
+                self.avg_reward = episode_reward
+            else: 
+                self.avg_reward = self.avg_reward  + (episode_reward - self.avg_reward)/episode
+            self.writer.add_scalar('Avg. Reward', self.avg_reward, episode)
 
     # Description: Tests the model
     # Parameters:
