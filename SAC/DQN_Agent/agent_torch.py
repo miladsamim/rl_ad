@@ -110,7 +110,7 @@ class DQN_Agent:
             state = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(DEVICE)
             with torch.no_grad():
                 self.dqn.eval()
-                return self.dqn(state).detach().cpu()[0]
+                return self.dqn(state).detach().cpu().argmax(dim=1).item()
 
     # Description: Calculates the reward at a given timestep
     # Parameters:
@@ -172,7 +172,7 @@ class DQN_Agent:
 
             # Creating q_grid if not yet defined and calculating average q-value
             if self.replay_memory.length() > 100 * self.replay_memory.batch_size:
-                self.q_grid = self.replay_memory.get_q_grid(size=200, training_metadata=self.training_metadata)
+                self.q_grid = self.replay_memory.get_q_grid(size=128, training_metadata=self.training_metadata)
             avg_q = self.estimate_avg_q()
 
             # Saving tensorboard data and model weights
