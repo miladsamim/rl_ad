@@ -192,7 +192,7 @@ class DQN_Agent:
                 self.writer.add_scalar('Test Reward (5 eps.)', score, episode / EVAL_FREQ)
                 self.writer.add_scalar('Test Reward Std (5 eps.)', std, episode / EVAL_FREQ)
                 if episode % SAVE_FREQ == 0:
-                    self.save(os.join(self.model_path+f'_{episode}.pt'))
+                    self.save(self.model_path+f'_{episode}.pt')
                 
             print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | avg q value {avg_q} | Reward {episode_reward:.2f} | Frames {episode_frame}')
 
