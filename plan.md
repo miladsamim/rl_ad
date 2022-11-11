@@ -21,8 +21,14 @@
 - :heavy_check_mark: build a first simple controller 
 
 ## First evaluation
+- Set up CarlEnv wrapper to simulate gym api 
+    - detect whether reload is necessary when restarting 
+    - connect with MPI 
+    - reward computation
+        - criteria processing
+    - state processing 
 - Set up trainer
-    - Trainer should start given scenarios, start the agent, have it learning, and store/load model between scenarios, perhaps prefill replay buffer with npc data
+    - Trainer should select scenarios, weather, start the agent, then it should simply execute for number of specified learning steps, and then sample scenario on reset, log metrics, and manage the buffer, perhaps store buffer (or at least for npc-agents maybe) 
 - setup SAC controller to learn straight driving
     - have the agent set up the required models, 
     - fill up replay buffer, with adequate (s_t,a_t,s_t+1,r) information
