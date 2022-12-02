@@ -39,6 +39,18 @@
 - Test training loop
 - Try to learn straight driving
 
+# First Evaluation 1
+- :heavy_check_mark: finalize reward computation
+    - $R_t = -0.1 + 1*rc - 2*wl - 200*c -1*d - 10*of$
+    - rc (route completion) = positive every driven meter on route
+    - wl (wrong lane) = penalty for crossing in to wrong lane 
+    - c (collision) = penalty for colliding into objects (cars, pedestrians, buildings, etc.)
+    - d (deviation from center of lane) = penalty for not being at the center of lane 
+    - of (off-road) = penalty for being off-road sidewalk, grass, etc.
+- :heavy_check_mark: checklog wanted data and training measures
+- :heavy_check_mark: set up a set of scenarios to train on for 3M steps
+- :heavy_check_mark: start training 
+
 # Next step
 - Evaluate setup
 - More complex scenarios
