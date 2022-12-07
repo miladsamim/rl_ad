@@ -1,4 +1,4 @@
-Environment: CarRacing1667756798.765311
+Environment: CarRacing1667821227.0924315
 seed: [104, 106, 108]
 actions: {0: [-1, 0, 0], 1: [1, 0, 0], 2: [0, 1, 0], 3: [0, 0, 0.8], 4: [0, 0, 0]}
 Architecture: Nature_Paper_Conv_Dropout_Torch(

@@ -12,6 +12,8 @@
 # import necesary files and functions
 import sys
 sys.dont_write_bytecode = True
+from collections import deque
+import gc 
 
 import numpy as np
 import random
@@ -26,6 +28,8 @@ class Replay_Memory:
         self.memory_capacity = memory_capacity
         self.batch_size = batch_size
         self.memory = []
+        # self.memory = deque(maxlen=memory_capacity)
+        self.idx = 0
 
     # To output the filled size of memory
     def length(self):
@@ -51,10 +55,16 @@ class Replay_Memory:
         # convert the action to one hot action for easier computation
         one_hot_action = np.zeros(agent.action_size)
         one_hot_action[action] = 1
-        self.memory.append((state, one_hot_action, reward, next_state, done))
+        if len(self.memory) < self.memory_capacity:
+            self.memory.append((state, one_hot_action, reward, next_state, done))
+        else:
+            self.memory[self.idx] = (state, one_hot_action, reward, next_state, done)
+            self.idx += 1
+            if self.idx == self.memory_capacity:
+                self.idx = 0 # start filling from start  
         # delete the earliest episode if memory is full
-        if (len(self.memory) > self.memory_capacity):
-            self.memory.pop(0)
+        # if (len(self.memory) > self.memory_capacity):
+        #     self.memory.pop(0)
 
     # To randomly sample states for evaluating average Q value during 
     # training.

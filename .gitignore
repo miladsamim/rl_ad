@@ -10,6 +10,8 @@ __pycache__/
 scenario_runner-0.9.13
 CARLA_0.9.13
 
+SAC/DQN_Agent/models/
+
 # Distribution / packaging
 .Python
 build/

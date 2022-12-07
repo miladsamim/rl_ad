@@ -4,7 +4,8 @@ sys.dont_write_bytecode = True
 import sys
 # import tensorflow as tf
 # import agent
-import agent_torch as agent
+# import agent_torch as agent
+import agent_torch_trans as agent
 import environment as env
 import parameters.setup as setup
 
@@ -15,8 +16,10 @@ import parameters.setup as setup
 #    in parameters/setup.py.
 ########################################################################################################
 
-environment = env.CarRacing(**setup.setup_dict['car racing'])
-control = agent.DQN_Agent(environment=environment, model_name=sys.argv[1], **setup.setup_dict['agent'])
+# environment = env.CarRacing(**setup.setup_dict['car racing'])
+# control = agent.DQN_Agent(environment=environment, **setup.setup_dict['agent'])
+environment = env.CarRacing(**setup.setup_dict_trans['car racing'])
+control = agent.DQN_Agent(environment=environment, **setup.setup_dict_trans['agent'])
 
 #####################################  Traning a model  ################################################
 control.train()
