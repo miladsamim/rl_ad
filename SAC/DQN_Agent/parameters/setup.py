@@ -16,7 +16,10 @@ from .explore_rates import *
 from .learning_rates import * 
 # from architectures import *
 from .architectures_torch import Nature_Paper_Conv_Dropout_Torch
-from parameters import DriveDQN, model_params, DriveDQN_simple_fusion
+from parameters import (DriveDQN, model_params, DriveDQN_simple_fusion,
+						DriveDQN_simple_fusion_lstm, 
+						DriveDQN_simple_fusion_single_act_dec,
+						DriveDQN_simple_fusion_learnable_act_embs)
 
 ####################################################################
 # Hyperparameters:												   #
@@ -57,12 +60,15 @@ from parameters import DriveDQN, model_params, DriveDQN_simple_fusion
 ####################################################################
 setup_dict_trans = {
 	'agent': {
-		# 'architecture': DriveDQN_simple_fusion_lstm,#DriveDQN_simple_fusion,# DriveDQN, 
-		'architecture': DriveDQN_simple_fusion,
+		'architecture': DriveDQN_simple_fusion_learnable_act_embs,
+		# 'architecture': DriveDQN_simple_fusion_single_act_dec,
+		# 'architecture': DriveDQN_simple_fusion_lstm,
+		# 'architecture': DriveDQN_simple_fusion,
 		# 'architecture': DriveDQN,
 		'architecture_args': model_params,
 		'explore_rate': Decay_Explore_Rate,
-		'learning_rate': Atari_Learning_Rate,
+		# 'learning_rate': 0.00025,#Atari_Learning_Rate,
+		'learning_rate': 1e-3,
 		'batch_size': 32, 
 		'memory_capacity': 5_000,#100000, 
 		'num_episodes': 3000,

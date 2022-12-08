@@ -59,7 +59,7 @@ class DQN_Agent:
         self.dqn = architecture(args).to(args.device)
         self.target_dqn = architecture(args).to(args.device)
         self.update_fixed_target_weights()
-        self.learning_rate = 0.00025# learning_rate() # atari learning rate
+        self.learning_rate = learning_rate#0.00025# learning_rate() # atari learning rate
         self.batch_size = batch_size
         parameters = [param for param in self.dqn.parameters() if param.requires_grad == True]
         self.optim = torch.optim.Adam(parameters, lr=self.learning_rate)
@@ -202,7 +202,7 @@ class DQN_Agent:
                 self.writer.add_scalar('Test Reward (5 eps.)', score, episode / EVAL_FREQ)
                 self.writer.add_scalar('Test Reward Std (5 eps.)', std, episode / EVAL_FREQ)
                 if episode % SAVE_FREQ == 0:
-                    self.save(self.model_path + '/' + self.model_name + self.model_name + '.pt')
+                    self.save(self.model_path + '/' + self.model_name + '.pt')
                 
             print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | Reward {episode_reward:.2f} | Frames {episode_frame}')
 
