@@ -18,7 +18,7 @@ DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 EVAL_FREQ=25
-SAVE_FREQ=100
+SAVE_FREQ=1000
 
 #####################################  Description  ####################################################
 # This file defines the class DQN_Agent. It uses Double DQN to train the neural network.
@@ -49,7 +49,7 @@ class DQN_Agent:
 
     def __init__(self, environment, architecture, explore_rate, learning_rate,
                  batch_size, memory_capacity, num_episodes, learning_rate_drop_frame_limit,
-                 target_update_frequency, discount=0.99, delta=1, model_name=None, architecture_args=(4,5)):
+                 target_update_frequency, discount=0.99, delta=1, model_name="torch_dqn_m", architecture_args=(4,5)):
         self.env = environment
         self.action_size = self.env.action_space_size
         self.avg_reward = None

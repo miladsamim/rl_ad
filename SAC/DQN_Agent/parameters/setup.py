@@ -19,7 +19,9 @@ from .architectures_torch import Nature_Paper_Conv_Dropout_Torch
 from parameters import (DriveDQN, model_params, DriveDQN_simple_fusion,
 						DriveDQN_simple_fusion_lstm, 
 						DriveDQN_simple_fusion_single_act_dec,
-						DriveDQN_simple_fusion_learnable_act_embs)
+						DriveDQN_simple_fusion_learnable_act_embs,
+						DriveDQN_cnn_lstm,
+						DriveDQN_cnn)
 
 ####################################################################
 # Hyperparameters:												   #
@@ -60,17 +62,19 @@ from parameters import (DriveDQN, model_params, DriveDQN_simple_fusion,
 ####################################################################
 setup_dict_trans = {
 	'agent': {
-		'architecture': DriveDQN_simple_fusion_learnable_act_embs,
+		'architecture': DriveDQN_cnn,
+		# 'architecture': DriveDQN_cnn_lstm,
+		# 'architecture': DriveDQN_simple_fusion_learnable_act_embs,
 		# 'architecture': DriveDQN_simple_fusion_single_act_dec,
 		# 'architecture': DriveDQN_simple_fusion_lstm,
 		# 'architecture': DriveDQN_simple_fusion,
 		# 'architecture': DriveDQN,
 		'architecture_args': model_params,
 		'explore_rate': Decay_Explore_Rate,
-		# 'learning_rate': 0.00025,#Atari_Learning_Rate,
-		'learning_rate': 1e-3,
+		'learning_rate': 0.00025,#Atari_Learning_Rate,
+		# 'learning_rate': 1e-3,
 		'batch_size': 32, 
-		'memory_capacity': 5_000,#100000, 
+		'memory_capacity': 15_000,#100000, 
 		'num_episodes': 3000,
 		'learning_rate_drop_frame_limit': 250000,
 		'target_update_frequency': 1000,
@@ -81,8 +85,8 @@ setup_dict_trans = {
 		'seed': None, # random tracks 
 		'detect_edges': False, 
 		'detect_grass': False, 
-		'flip': True,
-		'process_state': False,
+		'flip': False,
+		'process_state': True,
 		'use_frame_skip': True, 
 		'use_episode_flipping': False,
 		# 'type': 'ShortTrack'
@@ -96,16 +100,16 @@ setup_dict = {
 		'explore_rate': Decay_Explore_Rate,
 		'target_update_frequency': 1000,
 		'batch_size': 32, 
-		'memory_capacity': 25_000,#100000, 
+		'memory_capacity': 15_000,#100000, 
 		'num_episodes': 3000,
 		'learning_rate_drop_frame_limit': 250000
 	},
 
 	'car racing': {
-		'seed': [0],#fixed_3track_seed, 
+		'seed': None,#[0],#fixed_3track_seed, 
 		'detect_edges': False, 
 		'detect_grass': False, 
-		'flip': True,
+		'flip': False,
 		# 'type': 'ShortTrack'
 	}
 }

@@ -55,6 +55,8 @@ class MemoryBufferSimple(torch.utils.data.Dataset):
             act_x.append(torch.tensor(state['action_idx'], dtype=torch.long))
 
         img_x = torch.stack(img_x)
+        img_x = img_x.transpose(1,2)
+        # print(img_x.shape)
         steering_x = torch.stack(steering_x)
         speed_x = torch.stack(speed_x)
         gyro_x = torch.stack(gyro_x)
@@ -63,8 +65,7 @@ class MemoryBufferSimple(torch.utils.data.Dataset):
         abs3_x = torch.stack(abs3_x)
         abs4_x = torch.stack(abs4_x)
         act_x = torch.stack(act_x)
-
-        return img_x, steering_x, speed_x, gyro_x, abs1_x, abs2_x, abs3_x, abs4_x, act_x
+        return [img_x, steering_x, speed_x, gyro_x, abs1_x, abs2_x, abs3_x, abs4_x, act_x]
         
     def __getitem__(self, idx):
         end_idx = idx + self.num_frames + 1 # +1 as we need next state as well

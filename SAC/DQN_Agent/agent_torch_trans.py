@@ -100,7 +100,7 @@ class DQN_Agent:
         X_sensor = torch.stack(states[1:-1], axis=0).permute(0,2,1).unsqueeze(-1).to(args.device)
         X_act = states[-1].transpose(0,1).to(args.device)
         cur_state = (X_img[:-1], X_sensor[:,:-1], X_act[:-1])
-        next_state = (X_img[1:], X_sensor[:,1:], X_act[1:])
+        next_state = (X_img[1:], X_sensor[:, 1:], X_act[1:])
         actions = actions.unsqueeze(-1).to(args.device)
         rewards = rewards.unsqueeze(1).to(args.device)
         dones = dones.unsqueeze(1).to(args.device)
@@ -157,7 +157,7 @@ class DQN_Agent:
             self.training_metadata.increment_episode()
 
             # Setting up game environment
-            state_img = self.env.reset()
+            state_img, _ = self.env.reset()
             state = self.process_state(state_img, 0)
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
@@ -178,7 +178,7 @@ class DQN_Agent:
 
                 # Choosing and performing action and updating the replay memory
                 action = self.get_action(state_frame_stack, epsilon)
-                next_state_img, reward, done, info = self.env.step(action)
+                next_state_img, reward, done, info, _ = self.env.step(action)
                 next_state = self.process_state(next_state_img, action)
 
                 episode_reward += reward
@@ -226,7 +226,7 @@ class DQN_Agent:
         rewards = []
         for episode in range(num_test_episodes):
             done = False
-            state_img = self.env.reset(test=True)
+            state_img, _ = self.env.reset(test=True)
             state = self.process_state(state_img, 0)
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
@@ -238,7 +238,7 @@ class DQN_Agent:
                 if visualize:
                     self.env.render()
                 action = self.get_action(state_frame_stack, epsilon=0)
-                next_state_img, reward, done, info = self.env.step(action, test=True)
+                next_state_img, reward, done, info, _ = self.env.step(action, test=True)
                 next_state = self.process_state(next_state_img, action)
                 state = next_state
                 state_frame_stack.append(state)
@@ -271,20 +271,31 @@ class DQN_Agent:
     def save(self, path):
         torch.save(self.dqn.state_dict(), path)
 
-    def process_state(self, state_img, action_idx):
+    def process_state(self, state_img, action_idx, process=False):
         """Process state so it can be used with transformer model"""
-        state_img = state_img/255.0 
-        data_board = state_img[84:, 12:]
-        steering, speed, gyro, abs1, abs2, abs3, abs4 = self.compute_steering_speed_gyro_abs(data_board)
-        state = {'img': state_img,
-                'steering': steering,
-                'speed': speed,
-                'gyro': gyro,
-                'abs1': abs1,
-                'abs2': abs2,
-                'abs3': abs3,
-                'abs4': abs4,
-                'action_idx': action_idx}
+        if process:
+            state_img = state_img/255.0 
+            data_board = state_img[84:, 12:]
+            steering, speed, gyro, abs1, abs2, abs3, abs4 = self.compute_steering_speed_gyro_abs(data_board)
+            state = {'img': state_img,
+                    'steering': steering,
+                    'speed': speed,
+                    'gyro': gyro,
+                    'abs1': abs1,
+                    'abs2': abs2,
+                    'abs3': abs3,
+                    'abs4': abs4,
+                    'action_idx': action_idx}
+        else: 
+            state = {'img': state_img,
+                    'steering': 0,
+                    'speed': 0,
+                    'gyro': 0,
+                    'abs1': 0,
+                    'abs2': 0,
+                    'abs3': 0,
+                    'abs4': 0,
+                    'action_idx': 0}
         return state
 
 

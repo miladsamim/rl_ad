@@ -1,9 +1,11 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision.transforms import Grayscale
 
 from parameters.sensor_net import SensorModel
 from parameters.positional_encoding import PositionalEncoding
+from parameters.architectures_torch import Nature_Paper_Conv_Dropout_Torch2
 
 class DriveDQN(nn.Module):
     """Original Proposed Transformer Architecture"""
@@ -201,3 +203,42 @@ class DriveDQN_simple_fusion_lstm(nn.Module):
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         out, h = self.rnn(hidden_states)
         return self.out(F.relu(h.squeeze(0)))
+
+
+class DriveDQN_cnn_lstm(nn.Module):
+    """-Changing sensor fusion to simple concatenation
+       -Use GRU rnn to decode single action state for q values"""
+    def __init__(self, args):
+        super().__init__()
+        self.args = args
+        self.cnn = Nature_Paper_Conv_Dropout_Torch2(args.in_channels, p=args.c_dropout, image_shape=args.img_shape)
+        # stacking im and cnn1d-out will be 128+248=376
+        self.rnn = nn.GRU(512, args.h_size, num_layers=1)
+        self.out = nn.Linear(args.h_size, args.act_dim)
+
+
+    def forward(self, X_img, X_sensor, X_act):
+        n_frames, b_size = X_img.shape[0], X_img.shape[1]
+        hidden_states = []
+        for i in range(n_frames):
+            X_img_h = self.cnn(X_img[i])
+            hidden_states.append(X_img_h)
+
+        hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
+        out, h = self.rnn(hidden_states)
+        return self.out(F.relu(h.squeeze(0)))
+
+
+class DriveDQN_cnn(nn.Module):
+    """-Changing sensor fusion to simple concatenation
+       -Use GRU rnn to decode single action state for q values"""
+    def __init__(self, args):
+        super().__init__()
+        self.args = args
+        self.cnn = Nature_Paper_Conv_Dropout_Torch2(args.in_channels+1, p=args.c_dropout, image_shape=args.img_shape)
+        self.out = nn.Linear(512, args.act_dim)
+
+    def forward(self, X_img, X_sensor, X_act):
+        X = X_img.squeeze(0)
+        X = self.cnn(X)
+        return self.out(X)
