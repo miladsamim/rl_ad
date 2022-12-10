@@ -14,6 +14,7 @@ from parameters import MemoryBufferSimple, MemoryBufferSeparated
 import utils
 from collections import deque
 from timeit import default_timer as timer 
+import os
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -80,8 +81,8 @@ class DQN_Agent:
         # Training parameters setup
         self.target_update_frequency = target_update_frequency
         self.discount = discount
-        self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
-        # self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity)
+        # self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
+        self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity)
         self.replay_memory_sampler = torch.utils.data.DataLoader(self.replay_memory, batch_size=batch_size, shuffle=True)
         # self.training_metadata = utils.Training_Metadata(frame=self.sess.run(self.frames), frame_limit=learning_rate_drop_frame_limit,
         # 												   episode=self.sess.run(self.episode), num_episodes=num_episodes)
@@ -168,7 +169,7 @@ class DQN_Agent:
             # Setting up game environment
             state_img, _ = self.env.reset()
             state = self.process_state(state_img, 0, process=False)
-            # self.replay_memory.add_experience(state, 0, 0, False, new_episode=True) # initialize new ep in buffer 
+            self.replay_memory.add_experience(state, 0, 0, False, new_episode=True) # initialize new ep in buffer 
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
@@ -195,8 +196,8 @@ class DQN_Agent:
                 episode_reward += reward
                 episode_frame += 1
 
-                # self.replay_memory.add_experience(state, action, reward, done, new_episode=False)
-                self.replay_memory.add_experience(state, action, reward, done)
+                self.replay_memory.add_experience(state, action, reward, done, new_episode=False)
+                # self.replay_memory.add_experience(state, action, reward, done)
 
                 # Performing experience replay if replay memory populated
                 if self.replay_memory.__len__() > 10 * self.replay_memory.batch_size:
@@ -213,8 +214,9 @@ class DQN_Agent:
                 print('{0} +- {1}'.format(score, std))
                 self.writer.add_scalar('Test Reward (5 eps.)', score, episode / EVAL_FREQ)
                 self.writer.add_scalar('Test Reward Std (5 eps.)', std, episode / EVAL_FREQ)
-                if episode % SAVE_FREQ == 0:
-                    self.save(self.model_path + '/' + self.model_name + '.pt')
+            if episode % SAVE_FREQ == 0:
+                self.save(self.model_path + '/' + self.model_name + '.pt')
+                os.popen('push.sh')
                 
             print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | Reward {episode_reward:.2f} | Frames {episode_frame}')
 
