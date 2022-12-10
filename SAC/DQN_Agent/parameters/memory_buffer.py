@@ -160,7 +160,7 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
         abs2_x = torch.tensor(abs2_x, dtype=torch.float32).unsqueeze(-1)
         abs3_x = torch.tensor(abs3_x, dtype=torch.float32).unsqueeze(-1)
         abs4_x = torch.tensor(abs4_x, dtype=torch.float32).unsqueeze(-1)
-        act_x = torch.tensor(act_x, dtype=torch.int64).unsqueeze(-1)
+        act_x = torch.tensor(act_x, dtype=torch.int64)#.unsqueeze(-1)
 
         return [img_x, steering_x, speed_x, gyro_x, abs1_x, abs2_x, abs3_x, abs4_x, act_x]
         

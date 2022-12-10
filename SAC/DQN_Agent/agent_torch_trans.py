@@ -146,7 +146,7 @@ class DQN_Agent:
             args = self.args
             state = self.replay_memory._process_states(state)
             X_img = state[0].unsqueeze(1).to(args.device)
-            X_sensor = torch.stack(state[1:-1], axis=0)[...,None,None].to(args.device)
+            X_sensor = torch.stack(state[1:-1], axis=0)[...,None].to(args.device)
             X_act = state[-1].unsqueeze(1).to(args.device)
             state = (X_img, X_sensor, X_act)
             with torch.no_grad():
