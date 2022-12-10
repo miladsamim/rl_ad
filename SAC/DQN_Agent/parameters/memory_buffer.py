@@ -152,7 +152,7 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
            sensor setup. This configuration works for the HDSensor setup."""
         img_x, steering_x, speed_x, gyro_x, abs1_x, abs2_x, abs3_x, abs4_x, act_x = zip(*[state.values() for state in states])
         img_x = torch.tensor(np.stack(img_x).transpose(0,3,1,2), dtype=torch.float32)
-        img_x = img_x.transpose(1,2) # due to using default carracer processing
+        # img_x = img_x.transpose(1,2) # due to using default carracer processing
         steering_x = torch.tensor(steering_x, dtype=torch.float32).unsqueeze(-1)
         speed_x = torch.tensor(speed_x, dtype=torch.float32).unsqueeze(-1)
         gyro_x = torch.tensor(gyro_x, dtype=torch.float32).unsqueeze(-1)
@@ -160,7 +160,7 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
         abs2_x = torch.tensor(abs2_x, dtype=torch.float32).unsqueeze(-1)
         abs3_x = torch.tensor(abs3_x, dtype=torch.float32).unsqueeze(-1)
         abs4_x = torch.tensor(abs4_x, dtype=torch.float32).unsqueeze(-1)
-        act_x = torch.tensor(act_x, dtype=torch.float32).unsqueeze(-1)
+        act_x = torch.tensor(act_x, dtype=torch.int64).unsqueeze(-1)
 
         return [img_x, steering_x, speed_x, gyro_x, abs1_x, abs2_x, abs3_x, abs4_x, act_x]
         

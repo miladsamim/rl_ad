@@ -194,7 +194,7 @@ class DriveDQN_simple_fusion_lstm(nn.Module):
         dec_in = torch.ones(1, b_size, self.args.h_size, requires_grad=False, device=self.args.device)
         for i in range(n_frames):
             X_state_h = self.sensor_net(X_img[i], X_sensor[:,i])
-            X_state_h.append(self.action_emb(X_act[i]))
+            X_state_h.append(self.action_emb(X_act[i]).squeeze(1))
             X_sensor_h = torch.stack(X_state_h[1:], axis=1)
             X_sensor_h = self.cnn_1d_sensor(X_sensor_h).view(b_size, -1)
             X_state_h = torch.concat([X_state_h[0],X_sensor_h], axis=1)

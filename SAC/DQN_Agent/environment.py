@@ -63,8 +63,8 @@ class CarRacing:
 
         if self.process_state:
             return self.process(state)
-        else:
-            return state
+        else: 
+            return state, None
 
     # take action 
     def step(self, action, test=False):
@@ -84,7 +84,7 @@ class CarRacing:
             processed_next_state, in_grass = self.process(next_state)    
             return processed_next_state, total_reward, done, info, in_grass
         else:
-            return next_state, total_reward, done, info
+            return next_state, total_reward, done, info, None 
 
     def render(self):
         self.env.render()

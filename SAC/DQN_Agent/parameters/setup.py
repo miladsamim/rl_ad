@@ -62,12 +62,12 @@ from parameters import (DriveDQN, model_params, DriveDQN_simple_fusion,
 ####################################################################
 setup_dict_trans = {
 	'agent': {
-		'architecture': DriveDQN_cnn,
+		# 'architecture': DriveDQN_cnn,
 		# 'architecture': DriveDQN_cnn_lstm,
 		# 'architecture': DriveDQN_simple_fusion_learnable_act_embs,
 		# 'architecture': DriveDQN_simple_fusion_single_act_dec,
 		# 'architecture': DriveDQN_simple_fusion_lstm,
-		# 'architecture': DriveDQN_simple_fusion,
+		'architecture': DriveDQN_simple_fusion_lstm,
 		# 'architecture': DriveDQN,
 		'architecture_args': model_params,
 		'explore_rate': Decay_Explore_Rate,
@@ -86,7 +86,7 @@ setup_dict_trans = {
 		'detect_edges': False, 
 		'detect_grass': False, 
 		'flip': False,
-		'process_state': True,
+		'process_state': False,
 		'use_frame_skip': True, 
 		'use_episode_flipping': False,
 		# 'type': 'ShortTrack'
