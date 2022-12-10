@@ -8,6 +8,9 @@ from PIL import Image
 import utils
 import time
 
+from importlib.metadata import version
+USE_V2 = '0.21.0' < version('gym') 
+
 class CarRacing:
 
     # Parameters
@@ -17,7 +20,8 @@ class CarRacing:
     def __init__(self, type="CarRacing", history_pick=4, seed=None, detect_edges=False, detect_grass=False, flip=False,
                  process_state=True, use_frame_skip=True, use_episode_flipping=True):
         self.name = type + str(time.time())
-        self.env = gym.make(type + '-v0')
+        version = 'v2' if USE_V2 else 'v0'
+        self.env = gym.make(type + '-' + version)
         self.image_dimension = [96,96]
         self.history_pick = history_pick
         self.state_space_size = history_pick * np.prod(self.image_dimension)
@@ -51,10 +55,16 @@ class CarRacing:
             self.flip_episode = random.random() > 0.5 and not test and self.flip
         else:
             self.flip_episode = False 
+        
+        # discern between gym versions
+        state = self.env.reset()
+        if USE_V2:
+            state,_ = state #pack out info 
+
         if self.process_state:
-            return self.process(self.env.reset())
+            return self.process(state)
         else:
-            return self.env.reset()
+            return state
 
     # take action 
     def step(self, action, test=False):
@@ -62,7 +72,11 @@ class CarRacing:
         total_reward = 0
         n = 1 if test or (not self.use_frame_skip) else random.choice([2, 3, 4])
         for i in range(n):
-            next_state, reward, done, info = self.env.step(action)
+            if USE_V2:
+                next_state, reward, terminated, truncated, info = self.env.step(action)
+                done = terminated or truncated
+            else:
+                next_state, reward, done, info = self.env.step(action)
             total_reward += reward
             info = {'true_done': done}
             if done: break
