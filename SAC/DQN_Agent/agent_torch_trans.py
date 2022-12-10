@@ -217,7 +217,7 @@ class DQN_Agent:
                 self.writer.add_scalar('Test Reward Std (5 eps.)', std, episode / EVAL_FREQ)
             if episode % SAVE_FREQ == 0:
                 self.save(self.model_path + '/' + self.model_name + '.pt')
-                os.popen('push.sh')
+                os.popen('sh push.sh')
                 
             print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | Reward {episode_reward:.2f} | Frames {episode_frame}')
 
