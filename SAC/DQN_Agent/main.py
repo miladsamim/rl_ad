@@ -16,10 +16,10 @@ import parameters.setup as setup
 #    in parameters/setup.py.
 ########################################################################################################
 
-environment = env.CarRacing(**setup.setup_dict['car racing'])
-control = agent.DQN_Agent(environment=environment, **setup.setup_dict['agent'])
-# environment = env.CarRacing(**setup.setup_dict_trans['car racing'])
-# control = agent_trans.DQN_Agent(environment=environment, **setup.setup_dict_trans['agent'])
+# environment = env.CarRacing(**setup.setup_dict['car racing'])
+# control = agent.DQN_Agent(environment=environment, **setup.setup_dict['agent'])
+environment = env.CarRacing(**setup.setup_dict_trans['car racing'])
+control = agent_trans.DQN_Agent(environment=environment, **setup.setup_dict_trans['agent'])
 
 #####################################  Traning a model  ################################################
 control.train()

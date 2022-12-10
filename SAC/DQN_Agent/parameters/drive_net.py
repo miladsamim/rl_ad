@@ -1,7 +1,7 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.transforms import Grayscale
+# from torchvision.transforms import Grayscale
 
 from parameters.sensor_net import SensorModel
 from parameters.positional_encoding import PositionalEncoding

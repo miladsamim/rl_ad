@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 import random
 import os
 import subprocess
-from parameters import MemoryBufferSimple
+from parameters import MemoryBufferSimple, MemoryBufferSeparated
 import utils
 from collections import deque
 from timeit import default_timer as timer 
@@ -78,7 +78,8 @@ class DQN_Agent:
         # Training parameters setup
         self.target_update_frequency = target_update_frequency
         self.discount = discount
-        self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
+        # self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
+        self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity)
         self.replay_memory_sampler = torch.utils.data.DataLoader(self.replay_memory, batch_size=batch_size, shuffle=True)
         # self.training_metadata = utils.Training_Metadata(frame=self.sess.run(self.frames), frame_limit=learning_rate_drop_frame_limit,
         # 												   episode=self.sess.run(self.episode), num_episodes=num_episodes)
@@ -97,7 +98,7 @@ class DQN_Agent:
         args = self.args
         states, actions, rewards, dones = next(iter(self.replay_memory_sampler))
         X_img = states[0].transpose(0,1).to(args.device)
-        X_sensor = torch.stack(states[1:-1], axis=0).permute(0,2,1).unsqueeze(-1).to(args.device)
+        X_sensor = torch.stack(states[1:-1], axis=0).permute(0,2,1,3).to(args.device)
         X_act = states[-1].transpose(0,1).to(args.device)
         cur_state = (X_img[:-1], X_sensor[:,:-1], X_act[:-1])
         next_state = (X_img[1:], X_sensor[:, 1:], X_act[1:])
@@ -158,7 +159,8 @@ class DQN_Agent:
 
             # Setting up game environment
             state_img, _ = self.env.reset()
-            state = self.process_state(state_img, 0)
+            state = self.process_state(state_img, 0, process=False)
+            self.replay_memory.add_experience(state, 0, 0, False, new_episode=True) # initialize new ep in buffer 
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
@@ -170,7 +172,7 @@ class DQN_Agent:
             alpha = self.learning_rate
             print(self.model_name + ": Episode {0}/{1} \t Epsilon: {2:.2f} \t Alpha(lr): {3}".format(episode, self.training_metadata.num_episodes, epsilon, alpha))
             episode_frame = 0
-            episode_reward =  0
+            episode_reward = 0
             while not done:
                 # Updating fixed target weights every #target_update_frequency frames
                 if self.training_metadata.frame % self.target_update_frequency == 0 and (self.training_metadata.frame != 0):
@@ -179,12 +181,12 @@ class DQN_Agent:
                 # Choosing and performing action and updating the replay memory
                 action = self.get_action(state_frame_stack, epsilon)
                 next_state_img, reward, done, info, _ = self.env.step(action)
-                next_state = self.process_state(next_state_img, action)
+                next_state = self.process_state(next_state_img, action, process=False)
 
                 episode_reward += reward
                 episode_frame += 1
 
-                self.replay_memory.add_experience(state, action, reward, done)
+                self.replay_memory.add_experience(state, action, reward, done, new_episode=False)
 
                 # Performing experience replay if replay memory populated
                 if self.replay_memory.__len__() > 10 * self.replay_memory.batch_size:
@@ -227,7 +229,7 @@ class DQN_Agent:
         for episode in range(num_test_episodes):
             done = False
             state_img, _ = self.env.reset(test=True)
-            state = self.process_state(state_img, 0)
+            state = self.process_state(state_img, 0, process=False)
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
@@ -239,7 +241,7 @@ class DQN_Agent:
                     self.env.render()
                 action = self.get_action(state_frame_stack, epsilon=0)
                 next_state_img, reward, done, info, _ = self.env.step(action, test=True)
-                next_state = self.process_state(next_state_img, action)
+                next_state = self.process_state(next_state_img, action, process=False)
                 state = next_state
                 state_frame_stack.append(state)
                 episode_reward += reward
