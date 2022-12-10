@@ -72,7 +72,7 @@ class MemoryBufferSimple(torch.utils.data.Dataset):
         
     def __getitem__(self, idx):
         end_idx = idx + self.num_frames 
-        states = self._process_states(itertools.islice(self.states, idx, end_idx)) + 1 # +1 as we need next state as well
+        states = self._process_states(itertools.islice(self.states, idx, end_idx+1))  # +1 as we need next state as well
         # end_idx - 1 as it is adjusted in the training loop
         action = torch.tensor(self.actions[end_idx-1], dtype=torch.int64)
         reward = torch.tensor(self.rewards[end_idx-1], dtype=torch.float32)
@@ -175,5 +175,5 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
         # t_end_idx - 1 as it is adjusted in the training loop 
         action = torch.tensor(self.ep_actions[ep_idx][t_end_idx-1], dtype=torch.int64) # because 0 indexed we need -1
         reward = torch.tensor(self.ep_rewards[ep_idx][t_end_idx-1], dtype=torch.float32)
-        dones = torch.tensor(self.ep_rewards[ep_idx][t_end_idx-1], dtype=torch.float32)
+        dones = torch.tensor(self.ep_dones[ep_idx][t_end_idx-1], dtype=torch.float32)
         return states, action, reward, dones

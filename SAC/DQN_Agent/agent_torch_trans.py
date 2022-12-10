@@ -63,8 +63,8 @@ class DQN_Agent:
         self.update_fixed_target_weights()
         self.learning_rate = learning_rate#0.00025# learning_rate() # atari learning rate
         self.batch_size = batch_size
-        parameters = [param for param in self.dqn.parameters() if param.requires_grad == True]
-        self.optim = torch.optim.Adam(parameters, lr=self.learning_rate)
+        # parameters = [param for param in self.dqn.parameters() if param.requires_grad == True]
+        self.optim = torch.optim.Adam(self.dqn.parameters(), lr=self.learning_rate)
         self.explore_rate = explore_rate()
         self.criterion = nn.HuberLoss()
 
@@ -80,8 +80,8 @@ class DQN_Agent:
         # Training parameters setup
         self.target_update_frequency = target_update_frequency
         self.discount = discount
-        # self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
-        self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity)
+        self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
+        # self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity)
         self.replay_memory_sampler = torch.utils.data.DataLoader(self.replay_memory, batch_size=batch_size, shuffle=True)
         # self.training_metadata = utils.Training_Metadata(frame=self.sess.run(self.frames), frame_limit=learning_rate_drop_frame_limit,
         # 												   episode=self.sess.run(self.episode), num_episodes=num_episodes)
@@ -99,6 +99,8 @@ class DQN_Agent:
     def experience_replay(self):
         args = self.args
         states, actions, rewards, dones = next(iter(self.replay_memory_sampler))
+        # print(list(map(lambda x:x.shape, states)))
+        # print(torch.stack(states[1:-1], axis=0).shape)
         X_img = states[0].transpose(0,1).to(args.device)
         X_sensor = torch.stack(states[1:-1], axis=0).permute(0,2,1,3).to(args.device)
         X_act = states[-1].transpose(0,1).to(args.device)
@@ -107,6 +109,10 @@ class DQN_Agent:
         actions = actions.unsqueeze(-1).to(args.device)
         rewards = rewards.unsqueeze(1).to(args.device)
         dones = dones.unsqueeze(1).to(args.device)
+        # print(states[0].shape)
+        # print(X_img.shape, actions.shape, rewards.shape, dones.shape)
+        # print(dones)
+        # print(cur_state[0].shape, next_state[0].shape, (cur_state[0]==next_state[0]).all())
 
         with torch.no_grad():
             self.dqn.eval() # don't use dropout when estimating targets
@@ -162,7 +168,7 @@ class DQN_Agent:
             # Setting up game environment
             state_img, _ = self.env.reset()
             state = self.process_state(state_img, 0, process=False)
-            self.replay_memory.add_experience(state, 0, 0, False, new_episode=True) # initialize new ep in buffer 
+            # self.replay_memory.add_experience(state, 0, 0, False, new_episode=True) # initialize new ep in buffer 
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
@@ -189,7 +195,8 @@ class DQN_Agent:
                 episode_reward += reward
                 episode_frame += 1
 
-                self.replay_memory.add_experience(state, action, reward, done, new_episode=False)
+                # self.replay_memory.add_experience(state, action, reward, done, new_episode=False)
+                self.replay_memory.add_experience(state, action, reward, done)
 
                 # Performing experience replay if replay memory populated
                 if self.replay_memory.__len__() > 10 * self.replay_memory.batch_size:
