@@ -69,7 +69,7 @@ class DQN_Agent:
         self.explore_rate = explore_rate()
         self.criterion = nn.HuberLoss()
 
-        self.model_name = architecture.__name__
+        self.model_name = architecture.__name__ #+ '_s_buf'
         self.model_path = os.path.dirname(os.path.realpath(__file__)) + '/models/' + self.model_name
         self.log_path = self.model_path + '/log'
         self.writer = SummaryWriter(self.log_path)
@@ -103,6 +103,7 @@ class DQN_Agent:
         # print(list(map(lambda x:x.shape, states)))
         # print(torch.stack(states[1:-1], axis=0).shape)
         X_img = states[0].transpose(0,1).to(args.device)
+        # X_sensor = torch.stack(states[1:-1], axis=0).unsqueeze(-1).permute(0,2,1,3).to(args.device)
         X_sensor = torch.stack(states[1:-1], axis=0).permute(0,2,1,3).to(args.device)
         X_act = states[-1].transpose(0,1).to(args.device)
         cur_state = (X_img[:-1], X_sensor[:,:-1], X_act[:-1])
