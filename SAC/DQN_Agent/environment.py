@@ -20,8 +20,10 @@ class CarRacing:
     def __init__(self, type="CarRacing", history_pick=4, seed=None, detect_edges=False, detect_grass=False, flip=False,
                  process_state=True, use_frame_skip=True, use_episode_flipping=True):
         self.name = type + str(time.time())
-        version = 'v2' if USE_V2 else 'v0'
-        self.env = gym.make(type + '-' + version)
+        if USE_V2:
+            self.env = gym.make(type + '-v2', new_step_api=True)
+        else:
+            self.env = gym.make(type + '-v0')
         self.image_dimension = [96,96]
         self.history_pick = history_pick
         self.state_space_size = history_pick * np.prod(self.image_dimension)
@@ -58,8 +60,6 @@ class CarRacing:
         
         # discern between gym versions
         state = self.env.reset()
-        if USE_V2:
-            state,_ = state #pack out info 
 
         if self.process_state:
             return self.process(state)

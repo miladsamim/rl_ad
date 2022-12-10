@@ -19,6 +19,8 @@ DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 EVAL_FREQ=25
 SAVE_FREQ=100
+from importlib.metadata import version
+USE_V2 = '0.21.0' < version('gym')
 
 
 #####################################  Description  ####################################################
@@ -164,7 +166,8 @@ class DQN_Agent:
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
-            self.env.render()
+            if not USE_V2:
+                self.env.render()
 
             # Setting up parameters for the episode
             done = False
@@ -180,7 +183,7 @@ class DQN_Agent:
 
                 # Choosing and performing action and updating the replay memory
                 action = self.get_action(state_frame_stack, epsilon)
-                next_state_img, reward, done, info, _ = self.env.step(action)
+                next_state_img, reward, done, info, in_grass = self.env.step(action)
                 next_state = self.process_state(next_state_img, action, process=False)
 
                 episode_reward += reward
@@ -234,13 +237,13 @@ class DQN_Agent:
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
             episode_reward = 0
-            if not visualize:
+            if not visualize and not USE_V2:
                 self.test_env.render()
             while not done:
-                if visualize:
+                if visualize and not USE_V2:
                     self.env.render()
                 action = self.get_action(state_frame_stack, epsilon=0)
-                next_state_img, reward, done, info, _ = self.env.step(action, test=True)
+                next_state_img, reward, done, info, in_grass = self.env.step(action, test=True)
                 next_state = self.process_state(next_state_img, action, process=False)
                 state = next_state
                 state_frame_stack.append(state)
