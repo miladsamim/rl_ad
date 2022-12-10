@@ -71,8 +71,8 @@ class MemoryBufferSimple(torch.utils.data.Dataset):
         return [img_x, steering_x, speed_x, gyro_x, abs1_x, abs2_x, abs3_x, abs4_x, act_x]
         
     def __getitem__(self, idx):
-        end_idx = idx + self.num_frames + 1 # +1 as we need next state as well
-        states = self._process_states(itertools.islice(self.states, idx, end_idx))
+        end_idx = idx + self.num_frames 
+        states = self._process_states(itertools.islice(self.states, idx, end_idx)) + 1 # +1 as we need next state as well
         # end_idx - 1 as it is adjusted in the training loop
         action = torch.tensor(self.actions[end_idx-1], dtype=torch.int64)
         reward = torch.tensor(self.rewards[end_idx-1], dtype=torch.float32)
@@ -170,10 +170,10 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
             ep_idx = random.choice(range(len(self.ep_lengths)))
             ep_len = self.ep_lengths[ep_idx]
         t_idx = random.choice(range(self.ep_lengths[ep_idx]-self.num_frames-1)) # -1 as we need s_t+1 also
-        t_end_idx = t_idx + self.num_frames + 1 # +1 as we need next state as well
-        states = self._process_states(self.ep_states[ep_idx][t_idx:t_end_idx])
-        # t_end_idx - 1 as it is adjusted in the training loop
-        action = torch.tensor(self.ep_actions[ep_idx][t_end_idx-1], dtype=torch.int64) 
+        t_end_idx = t_idx + self.num_frames 
+        states = self._process_states(self.ep_states[ep_idx][t_idx:t_end_idx+1]) # +1 as we need next state as well, and : (slicing) is [)
+        # t_end_idx - 1 as it is adjusted in the training loop 
+        action = torch.tensor(self.ep_actions[ep_idx][t_end_idx-1], dtype=torch.int64) # because 0 indexed we need -1
         reward = torch.tensor(self.ep_rewards[ep_idx][t_end_idx-1], dtype=torch.float32)
         dones = torch.tensor(self.ep_rewards[ep_idx][t_end_idx-1], dtype=torch.float32)
         return states, action, reward, dones
