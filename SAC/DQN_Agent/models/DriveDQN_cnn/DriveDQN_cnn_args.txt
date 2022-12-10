@@ -1,0 +1,16 @@
+in_channels:3
+h_size:128
+dropout_cnn:0.3
+img_shape:(96, 96)
+act_dim:5
+n_frames:1
+buffer_sz:15000
+n_head:8
+n_encs_f:2
+n_decs_f:1
+n_encs_t:2
+n_decs_t:1
+norm_first:True
+t_dropout:0.1
+c_dropout:0.3
+device:cpu
