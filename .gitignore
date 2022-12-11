@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+SAC/DQN_Agent/models/
+
 # Custom
 scenario_runner-0.9.13
 CARLA_0.9.13
