@@ -53,7 +53,7 @@ class DQN_Agent:
 
     def __init__(self, environment, architecture, architecture_args, explore_rate, learning_rate,
                  batch_size, memory_capacity, num_episodes, learning_rate_drop_frame_limit,
-                 target_update_frequency, discount=0.99, delta=1, model_name=None):
+                 target_update_frequency, discount=0.99, process_state=True, delta=1, model_name=None):
         self.args = args = architecture_args
         self.env = environment
         self.action_size = self.env.action_space_size
@@ -82,6 +82,7 @@ class DQN_Agent:
         self.target_update_frequency = target_update_frequency
         self.discount = discount
         # self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
+        self.process = True
         self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity)
         self.replay_memory_sampler = torch.utils.data.DataLoader(self.replay_memory, batch_size=batch_size, shuffle=True)
         # self.training_metadata = utils.Training_Metadata(frame=self.sess.run(self.frames), frame_limit=learning_rate_drop_frame_limit,
@@ -113,8 +114,13 @@ class DQN_Agent:
         dones = dones.unsqueeze(1).to(args.device)
         # print(states[0].shape)
         # print(X_img.shape, actions.shape, rewards.shape, dones.shape)
-        # print(dones)
-        # print(cur_state[0].shape, next_state[0].shape, (cur_state[0]==next_state[0]).all())
+        # print(states)
+        # print(cur_state[0].shape, next_state[0].shape, (cur_state[0][1:]==next_state[0][:-1]).all())
+        # print((cur_state[0][0]==next_state[0][-1]).all())
+        # print(X_act.shape)
+        # print(X_act[-1], actions)
+        # print(X_sensor)
+        # print((actions.squeeze(1)==X_act[-1]).all())
 
         with torch.no_grad():
             self.dqn.eval() # don't use dropout when estimating targets
@@ -169,7 +175,7 @@ class DQN_Agent:
 
             # Setting up game environment
             state_img, _ = self.env.reset()
-            state = self.process_state(state_img, 0, process=False)
+            state = self.process_state(state_img, 0, process=self.process)
             self.replay_memory.add_experience(state, 0, 0, False, new_episode=True) # initialize new ep in buffer 
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
@@ -192,7 +198,7 @@ class DQN_Agent:
                 # Choosing and performing action and updating the replay memory
                 action = self.get_action(state_frame_stack, epsilon)
                 next_state_img, reward, done, info, in_grass = self.env.step(action)
-                next_state = self.process_state(next_state_img, action, process=False)
+                next_state = self.process_state(next_state_img, action, process=self.process)
 
                 episode_reward += reward
                 episode_frame += 1
@@ -242,7 +248,7 @@ class DQN_Agent:
         for episode in range(num_test_episodes):
             done = False
             state_img, _ = self.env.reset(test=True)
-            state = self.process_state(state_img, 0, process=False)
+            state = self.process_state(state_img, 0, process=self.process)
             state_frame_stack = deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
@@ -254,7 +260,7 @@ class DQN_Agent:
                     self.env.render()
                 action = self.get_action(state_frame_stack, epsilon=0)
                 next_state_img, reward, done, info, in_grass = self.env.step(action, test=True)
-                next_state = self.process_state(next_state_img, action, process=False)
+                next_state = self.process_state(next_state_img, action, process=self.process)
                 state = next_state
                 state_frame_stack.append(state)
                 episode_reward += reward
@@ -286,7 +292,7 @@ class DQN_Agent:
     def save(self, path):
         torch.save(self.dqn.state_dict(), path)
 
-    def process_state(self, state_img, action_idx, process=False):
+    def process_state(self, state_img, action_idx, process):
         """Process state so it can be used with transformer model"""
         if process:
             state_img = state_img/255.0 

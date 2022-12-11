@@ -65,9 +65,9 @@ setup_dict_trans = {
 		# 'architecture': DriveDQN_cnn,
 		# 'architecture': DriveDQN_cnn_lstm,
 		# 'architecture': DriveDQN_simple_fusion_learnable_act_embs,
-		# 'architecture': DriveDQN_simple_fusion_single_act_dec,
+		'architecture': DriveDQN_simple_fusion_single_act_dec,
+		# 'architecture': DriveDQN_simple_fusion,
 		# 'architecture': DriveDQN_simple_fusion_lstm,
-		'architecture': DriveDQN_simple_fusion_lstm,
 		# 'architecture': DriveDQN,
 		'architecture_args': model_params,
 		'explore_rate': Decay_Explore_Rate,
@@ -79,6 +79,7 @@ setup_dict_trans = {
 		'learning_rate_drop_frame_limit': 250000,
 		'target_update_frequency': 1000,
 		'discount': 0.99,
+		'process_state': True,
 	},
 
 	'car racing': {
