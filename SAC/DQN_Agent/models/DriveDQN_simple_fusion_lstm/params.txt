@@ -1,4 +1,4 @@
-Environment: CarRacing1670714651.4402037
+Environment: CarRacing1670753914.3910224
 seed: None
 actions: {0: [-1, 0, 0], 1: [1, 0, 0], 2: [0, 1, 0], 3: [0, 0, 0.8], 4: [0, 0, 0]}
 Architecture: DriveDQN_simple_fusion_lstm(
