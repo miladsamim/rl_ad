@@ -260,8 +260,6 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
         self.positional_encoder = PositionalEncoding(d_model=args.h_size*2, max_len=64) # max number of time steps
     
         self.out = nn.Linear(d_size, args.act_dim)
-        # cnn1d out will be 248 from 128*8=1024 length 
-        # stacking im and cnn1d-out will be 128+248=376
 
     def forward(self, X_img, X_sensor, X_act):
         n_frames, b_size = X_img.shape[0], X_img.shape[1]
@@ -275,8 +273,6 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
 
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         hidden_states = self.positional_encoder(hidden_states)
-        dec_in = hidden_states[-1].unsqueeze(0)
-        # dec_in = self.action_emb(self.act_dec_idx.repeat(b_size, 1)).transpose(0,1)
         mask = self._generate_square_subsequent_mask(self.args.n_frames)
         hidden_state = self.temporal_decoder_net(tgt=hidden_states, memory=hidden_states,
                                                  tgt_mask=mask, memory_mask=mask) # seq_len X batchSize X h_size 
