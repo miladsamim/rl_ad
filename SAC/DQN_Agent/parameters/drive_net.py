@@ -242,6 +242,53 @@ class DriveDQN_simple_fusion2_single_act_dec(nn.Module):
         hidden_state = hidden_state.transpose(0, 1) # seq,batch,... -> batch,seq,...
         return self.out(F.relu(hidden_state)).squeeze(1)
 
+
+class DriveDQN_simple_fusion2_decoder(nn.Module):
+    """-Changing sensor fusion to simple concatenation
+       -Only decode to single action"""
+    def __init__(self, args):
+        super().__init__()
+        self.args = args
+        self.cnn = Nature_Paper_Conv_Dropout_Torch(args.in_channels, args.h_size, p=args.dropout_cnn, image_shape=args.img_shape)
+        self.internal_sensor_net = nn.Sequential(nn.Linear(7, args.h_size),
+                                                 nn.ReLU(),
+                                                 nn.Linear(args.h_size, args.h_size))
+        d_size = 2*args.h_size 
+        decoder_layer = nn.TransformerDecoderLayer(d_model=d_size, nhead=args.n_head, 
+                                           dim_feedforward=4*d_size, dropout=args.t_dropout, norm_first=args.norm_first)
+        self.temporal_decoder_net = nn.TransformerDecoder(decoder_layer, num_layers=args.n_decs)
+        self.positional_encoder = PositionalEncoding(d_model=args.h_size*2, max_len=64) # max number of time steps
+    
+        self.out = nn.Linear(d_size, args.act_dim)
+        # cnn1d out will be 248 from 128*8=1024 length 
+        # stacking im and cnn1d-out will be 128+248=376
+
+    def forward(self, X_img, X_sensor, X_act):
+        n_frames, b_size = X_img.shape[0], X_img.shape[1]
+        hidden_states = []
+        for i in range(n_frames):
+            X_img_h = self.cnn(X_img[i])
+            X_sensor_h = X_sensor[:,i].transpose(0,2).squeeze(0)
+            X_sensor_h = self.internal_sensor_net(X_sensor_h)
+            X_state_h = torch.concat([X_img_h, X_sensor_h], axis=1)
+            hidden_states.append(X_state_h)
+
+        hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
+        hidden_states = self.positional_encoder(hidden_states)
+        dec_in = hidden_states[-1].unsqueeze(0)
+        # dec_in = self.action_emb(self.act_dec_idx.repeat(b_size, 1)).transpose(0,1)
+        mask = self._generate_square_subsequent_mask(self.args.n_frames)
+        hidden_state = self.temporal_decoder_net(tgt=hidden_states, memory=hidden_states,
+                                                 tgt_mask=mask, memory_mask=mask) # seq_len X batchSize X h_size 
+        hidden_state = hidden_state[-1] # seq,batch,... -> batch,...
+        return self.out(F.relu(hidden_state))
+
+    def _generate_square_subsequent_mask(self, sz):
+        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+        mask = mask.float()
+        mask = mask.masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+        return mask
+
 class DriveDQN_simple_fusion2_lstm(nn.Module):
     """-Changing sensor fusion to simple concatenation
        -Use GRU rnn to decode single action state for q values"""
