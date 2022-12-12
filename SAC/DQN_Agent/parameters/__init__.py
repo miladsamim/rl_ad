@@ -8,5 +8,7 @@ from parameters.drive_net import (DriveDQN, DriveDQN_simple_fusion,
                                   DriveDQN_simple_fusion_single_act_dec,
                                   DriveDQN_simple_fusion_learnable_act_embs,
                                   DriveDQN_cnn_lstm,
-                                  DriveDQN_cnn)
+                                  DriveDQN_cnn,
+                                  DriveDQN_simple_fusion2_single_act_dec,
+                                  DriveDQN_simple_fusion2_lstm)
 from parameters.params import model_params
