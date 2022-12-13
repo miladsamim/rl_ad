@@ -10,5 +10,6 @@ from parameters.drive_net import (DriveDQN, DriveDQN_simple_fusion,
                                   DriveDQN_cnn_lstm,
                                   DriveDQN_cnn,
                                   DriveDQN_simple_fusion2_single_act_dec,
-                                  DriveDQN_simple_fusion2_lstm)
+                                  DriveDQN_simple_fusion2_lstm,
+                                  DriveDQN_simple_fusion2_decoder)
 from parameters.params import model_params

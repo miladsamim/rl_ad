@@ -23,7 +23,8 @@ from parameters import (DriveDQN, model_params, DriveDQN_simple_fusion,
 						DriveDQN_cnn_lstm,
 						DriveDQN_cnn,
 						DriveDQN_simple_fusion2_single_act_dec,
-						DriveDQN_simple_fusion2_lstm)
+						DriveDQN_simple_fusion2_lstm,
+						DriveDQN_simple_fusion2_decoder)
 
 ####################################################################
 # Hyperparameters:												   #
@@ -64,8 +65,9 @@ from parameters import (DriveDQN, model_params, DriveDQN_simple_fusion,
 ####################################################################
 setup_dict_trans = {
 	'agent': {
+		'architecture': DriveDQN_simple_fusion2_decoder,
 		# 'architecture': DriveDQN_simple_fusion2_single_act_dec,
-		'architecture': DriveDQN_simple_fusion2_lstm,
+		# 'architecture': DriveDQN_simple_fusion2_lstm,
 		# 'architecture': DriveDQN_cnn,
 		# 'architecture': DriveDQN_cnn_lstm,
 		# 'architecture': DriveDQN_simple_fusion_learnable_act_embs,

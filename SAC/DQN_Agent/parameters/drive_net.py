@@ -261,7 +261,7 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
     
         self.out = nn.Linear(d_size, args.act_dim)
 
-    def forward(self, X_img, X_sensor, X_act):
+    def forward(self, X_img, X_sensor, X_act, only_last=True):
         n_frames, b_size = X_img.shape[0], X_img.shape[1]
         hidden_states = []
         for i in range(n_frames):
@@ -273,11 +273,14 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
 
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         hidden_states = self.positional_encoder(hidden_states)
-        mask = self._generate_square_subsequent_mask(self.args.n_frames)
-        hidden_state = self.temporal_decoder_net(tgt=hidden_states, memory=hidden_states,
+        mask = self._generate_square_subsequent_mask(self.args.n_frames).to(self.args.device)
+        temp_hidden_states = self.temporal_decoder_net(tgt=hidden_states, memory=hidden_states,
                                                  tgt_mask=mask, memory_mask=mask) # seq_len X batchSize X h_size 
-        hidden_state = hidden_state[-1] # seq,batch,... -> batch,...
-        return self.out(F.relu(hidden_state))
+        temp_hidden_states = temp_hidden_states + hidden_states # seq,batch,... -> batch,... 
+        if only_last:
+            return self.out(F.relu(temp_hidden_states[-1])) 
+        else:
+            return self.out(F.relu(temp_hidden_states))
 
     def _generate_square_subsequent_mask(self, sz):
         mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
