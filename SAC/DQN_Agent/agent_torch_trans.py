@@ -53,7 +53,8 @@ class DQN_Agent:
 
     def __init__(self, environment, architecture, architecture_args, explore_rate, learning_rate,
                  batch_size, memory_capacity, num_episodes, learning_rate_drop_frame_limit,
-                 target_update_frequency, discount=0.99, process_state=True, delta=1, model_name=None):
+                 target_update_frequency, discount=0.99, process_state=True, use_all_timesteps=False,
+                 delta=1, model_name=None):
         self.args = args = architecture_args
         self.env = environment
         self.action_size = self.env.action_space_size
@@ -82,7 +83,8 @@ class DQN_Agent:
         self.target_update_frequency = target_update_frequency
         self.discount = discount
         # self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
-        self.process = True
+        self.process = process_state
+        self.use_all_timesteps = use_all_timesteps
         self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity)
         self.replay_memory_sampler = torch.utils.data.DataLoader(self.replay_memory, batch_size=batch_size, shuffle=True)
         # self.training_metadata = utils.Training_Metadata(frame=self.sess.run(self.frames), frame_limit=learning_rate_drop_frame_limit,
@@ -132,6 +134,35 @@ class DQN_Agent:
         self.dqn.train()
         q_value = self.dqn(*cur_state)
         q_value = q_value.gather(1, actions)
+
+        loss = self.criterion(q_value, q_value_targets)
+
+        self.optim.zero_grad()
+        loss.backward()
+        self.optim.step()
+
+    def experience_replay_all_steps(self):
+        args = self.args
+        states, actions, rewards, dones = next(iter(self.replay_memory_sampler))
+        X_img = states[0].transpose(0,1).to(args.device)
+        X_sensor = torch.stack(states[1:-1], axis=0).permute(0,2,1,3).to(args.device)
+        X_act = states[-1].transpose(0,1).to(args.device)
+        cur_state = (X_img[:-1], X_sensor[:,:-1], X_act[:-1])
+        next_state = (X_img[1:], X_sensor[:, 1:], X_act[1:])
+        actions = X_act[1:].unsqueeze(-1) # as state actions are from -1
+        rewards = rewards[...,None].to(args.device)
+        dones = dones[...,None].to(args.device)
+
+        with torch.no_grad():
+            self.dqn.eval() # don't use dropout when estimating targets
+            self.target_dqn.eval()
+            greedy_actions = self.dqn(*next_state, only_last=False).argmax(dim=2, keepdims=True)
+            q_value_targets = rewards + self.discount * ((1 - dones) * self.target_dqn(*next_state, only_last=False))
+            q_value_targets = q_value_targets.gather(2, greedy_actions)
+        
+        self.dqn.train()
+        q_value = self.dqn(*cur_state, only_last=False)
+        q_value = q_value.gather(2, actions)
 
         loss = self.criterion(q_value, q_value_targets)
 
@@ -209,7 +240,10 @@ class DQN_Agent:
                 # Performing experience replay if replay memory populated
                 if self.replay_memory.__len__() > 10 * self.replay_memory.batch_size:
                     self.training_metadata.increment_frame()
-                    self.experience_replay()
+                    if self.use_all_timesteps:
+                        self.experience_replay_all_steps()
+                    else:
+                        self.experience_replay()
                 # state = next_state
                 state = next_state
                 state_frame_stack.append(state)
@@ -223,7 +257,7 @@ class DQN_Agent:
                 self.writer.add_scalar('Test Reward Std (5 eps.)', std, episode / EVAL_FREQ)
             if episode % SAVE_FREQ == 0:
                 self.save(self.model_path + '/' + self.model_name + '.pt')
-                os.popen('sh push.sh')
+                # os.popen('sh push.sh')
                 
             print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | Reward {episode_reward:.2f} | Frames {episode_frame}')
 

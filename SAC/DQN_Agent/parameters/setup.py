@@ -86,6 +86,7 @@ setup_dict_trans = {
 		'target_update_frequency': 1000,
 		'discount': 0.99,
 		'process_state': True,
+		'use_all_timesteps': True,
 	},
 
 	'car racing': {
