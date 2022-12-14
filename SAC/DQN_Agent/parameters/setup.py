@@ -65,9 +65,9 @@ from parameters import (DriveDQN, model_params, DriveDQN_simple_fusion,
 ####################################################################
 setup_dict_trans = {
 	'agent': {
-		'architecture': DriveDQN_simple_fusion2_decoder,
+		# 'architecture': DriveDQN_simple_fusion2_decoder,
 		# 'architecture': DriveDQN_simple_fusion2_single_act_dec,
-		# 'architecture': DriveDQN_simple_fusion2_lstm,
+		'architecture': DriveDQN_simple_fusion2_lstm,
 		# 'architecture': DriveDQN_cnn,
 		# 'architecture': DriveDQN_cnn_lstm,
 		# 'architecture': DriveDQN_simple_fusion_learnable_act_embs,
@@ -86,7 +86,7 @@ setup_dict_trans = {
 		'target_update_frequency': 1000,
 		'discount': 0.99,
 		'process_state': True,
-		'use_all_timesteps': True,
+		'use_all_timesteps': False,
 	},
 
 	'car racing': {
