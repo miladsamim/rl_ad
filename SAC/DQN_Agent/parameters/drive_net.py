@@ -286,6 +286,7 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
         mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
         mask = mask.float()
         mask = mask.masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+        mask.requires_grad = False
         return mask
 
 class DriveDQN_simple_fusion2_lstm(nn.Module):
