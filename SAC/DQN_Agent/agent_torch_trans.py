@@ -73,6 +73,10 @@ class DQN_Agent:
         self.model_name = architecture.__name__ + '_8f'
         self.model_path = os.path.dirname(os.path.realpath(__file__)) + '/models/' + self.model_name
         self.log_path = self.model_path + '/log'
+        self.stats_file_path = self.model_path + '/stats.csv'
+        self.stats_buffer = []
+        with open(self.stats_file_path, 'w') as f:
+            f.write('Episode,NumOfEpisodes,Epsilon,lr,Reward,Frames\n')
         self.writer = SummaryWriter(self.log_path)
         with open(self.model_path + '/' + self.model_name + '_args.txt', 'w') as f: 
             for key, value in architecture_args.items(): 
@@ -103,8 +107,6 @@ class DQN_Agent:
     def experience_replay(self):
         args = self.args
         states, actions, rewards, dones = next(iter(self.replay_memory_sampler))
-        # print(list(map(lambda x:x.shape, states)))
-        # print(torch.stack(states[1:-1], axis=0).shape)
         X_img = states[0].transpose(0,1).to(args.device)
         # X_sensor = torch.stack(states[1:-1], axis=0).unsqueeze(-1).permute(0,2,1,3).to(args.device)
         X_sensor = torch.stack(states[1:-1], axis=0).permute(0,2,1,3).to(args.device)
@@ -114,15 +116,6 @@ class DQN_Agent:
         actions = actions.unsqueeze(-1).to(args.device)
         rewards = rewards.unsqueeze(1).to(args.device)
         dones = dones.unsqueeze(1).to(args.device)
-        # print(states[0].shape)
-        # print(X_img.shape, actions.shape, rewards.shape, dones.shape)
-        # print(states)
-        # print(cur_state[0].shape, next_state[0].shape, (cur_state[0][1:]==next_state[0][:-1]).all())
-        # print((cur_state[0][0]==next_state[0][-1]).all())
-        # print(X_act.shape)
-        # print(X_act[-1], actions)
-        # print(X_sensor)
-        # print((actions.squeeze(1)==X_act[-1]).all())
 
         with torch.no_grad():
             self.dqn.eval() # don't use dropout when estimating targets
@@ -249,6 +242,9 @@ class DQN_Agent:
                 state_frame_stack.append(state)
                 done = info['true_done']
 
+            print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | Reward {episode_reward:.2f} | Frames {episode_frame}')
+            self.stats_buffer.append(f'{episode}, {self.training_metadata.num_episodes}, {epsilon}, {alpha}, {episode_reward:.2f}, {episode_frame}\n')
+
             # Saving tensorboard data and model weights
             if (episode % EVAL_FREQ == 0) and (episode != 0):
                 score, std, rewards = self.test(num_test_episodes=5, visualize=True)
@@ -257,9 +253,10 @@ class DQN_Agent:
                 self.writer.add_scalar('Test Reward Std (5 eps.)', std, episode / EVAL_FREQ)
             if episode % SAVE_FREQ == 0:
                 self.save(self.model_path + '/' + self.model_name + '.pt')
-                # os.popen('sh push.sh')
-                
-            print(f'Epsiode {episode}/{self.training_metadata.num_episodes} | Reward {episode_reward:.2f} | Frames {episode_frame}')
+                with open(self.stats_file_path, 'a') as fp:
+                    fp.writelines(self.stats_buffer)
+                    self.stats_buffer = []
+                # os.popen('sh push.sh')    
 
             self.writer.add_scalar('epsilon', epsilon, episode)
             self.writer.add_scalar('lr', alpha, episode)
