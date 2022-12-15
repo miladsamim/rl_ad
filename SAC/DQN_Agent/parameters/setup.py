@@ -82,7 +82,7 @@ setup_dict_trans = {
 		'batch_size': 32, 
 		'memory_capacity': 15_000,#100000, 
 		'num_episodes': 3000,
-		'learning_rate_drop_frame_limit': 250000,
+		'learning_rate_drop_frame_limit': 500_000,#250000,
 		'target_update_frequency': 1000,
 		'discount': 0.99,
 		'process_state': True,

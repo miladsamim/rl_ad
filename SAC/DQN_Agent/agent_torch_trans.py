@@ -19,7 +19,7 @@ import os
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 EVAL_FREQ=25
-SAVE_FREQ=100
+SAVE_FREQ=10
 from importlib.metadata import version
 USE_V2 = '0.21.0' < version('gym')
 
@@ -70,14 +70,14 @@ class DQN_Agent:
         self.explore_rate = explore_rate()
         self.criterion = nn.HuberLoss()
 
-        self.model_name = architecture.__name__ + '_8f_res'
+        self.model_name = architecture.__name__ + f'_{self.args.n_frames}f_res'
         self.model_path = os.path.dirname(os.path.realpath(__file__)) + '/models/' + self.model_name
         self.log_path = self.model_path + '/log'
+        self.writer = SummaryWriter(self.log_path)
         self.stats_file_path = self.model_path + '/stats.csv'
         self.stats_buffer = []
         with open(self.stats_file_path, 'w') as f:
             f.write('Episode,NumOfEpisodes,Epsilon,lr,Reward,Frames\n')
-        self.writer = SummaryWriter(self.log_path)
         with open(self.model_path + '/' + self.model_name + '_args.txt', 'w') as f: 
             for key, value in architecture_args.items(): 
                 f.write('%s:%s\n' % (key, value))

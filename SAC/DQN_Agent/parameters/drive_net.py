@@ -318,7 +318,7 @@ class DriveDQN_simple_fusion2_lstm(nn.Module):
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         # out, (h_n, c_n) = self.rnn(hidden_states)
         out, h_n = self.rnn(hidden_states)
-        h_n = h_n[-1]
+        h_n = h_n[-1] + X_img_h
         return self.out(F.relu(h_n))
 
 
