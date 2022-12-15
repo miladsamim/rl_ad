@@ -70,7 +70,7 @@ class DQN_Agent:
         self.explore_rate = explore_rate()
         self.criterion = nn.HuberLoss()
 
-        self.model_name = architecture.__name__ + '_8f'
+        self.model_name = architecture.__name__ + '_8f_res'
         self.model_path = os.path.dirname(os.path.realpath(__file__)) + '/models/' + self.model_name
         self.log_path = self.model_path + '/log'
         self.stats_file_path = self.model_path + '/stats.csv'
