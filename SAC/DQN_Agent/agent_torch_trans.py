@@ -1,5 +1,7 @@
+import os 
 import sys
 sys.dont_write_bytecode = True
+os.chdir(sys.path[0])
 
 import gym
 import numpy as np
@@ -8,7 +10,6 @@ import torch.nn as nn
 import torch.nn.functional as F 
 from torch.utils.tensorboard import SummaryWriter
 import random
-import os
 import subprocess
 from parameters import MemoryBufferSimple, MemoryBufferSeparated
 import utils
