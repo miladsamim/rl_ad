@@ -19,7 +19,7 @@ import os
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
 EVAL_FREQ=25
-SAVE_FREQ=2
+SAVE_FREQ=100
 from importlib.metadata import version
 USE_V2 = '0.21.0' < version('gym')
 
