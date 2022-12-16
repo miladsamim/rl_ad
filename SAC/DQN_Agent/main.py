@@ -8,6 +8,7 @@ import agent_torch as agent
 import agent_torch_trans as agent_trans
 import environment as env
 import parameters.setup as setup
+from args_tester import parse_args
 
 #####################################  Usage  ##########################################################
 # 1) A command line argument specifying the name of the folder we want to log in must
@@ -18,8 +19,9 @@ import parameters.setup as setup
 
 # environment = env.CarRacing(**setup.setup_dict['car racing'])
 # control = agent.DQN_Agent(environment=environment, **setup.setup_dict['agent'])
-environment = env.CarRacing(**setup.setup_dict_trans['car racing'])
-control = agent_trans.DQN_Agent(environment=environment, **setup.setup_dict_trans['agent'])
+agent_setup, carracing_setup = parse_args() 
+environment = env.CarRacing(**carracing_setup)
+control = agent_trans.DQN_Agent(environment=environment, **agent_setup)
 
 #####################################  Traning a model  ################################################
 control.train()

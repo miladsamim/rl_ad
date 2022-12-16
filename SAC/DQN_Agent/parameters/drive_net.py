@@ -260,6 +260,7 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
         self.positional_encoder = PositionalEncoding(d_model=args.h_size*2, max_len=64) # max number of time steps
     
         self.out = nn.Linear(d_size, args.act_dim)
+        self.residual = args.residual
 
     def forward(self, X_img, X_sensor, X_act, only_last=True):
         n_frames, b_size = X_img.shape[0], X_img.shape[1]
@@ -276,7 +277,9 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
         mask = self._generate_square_subsequent_mask(self.args.n_frames).to(self.args.device)
         temp_hidden_states = self.temporal_decoder_net(tgt=hidden_states, memory=hidden_states,
                                                  tgt_mask=mask, memory_mask=mask) # seq_len X batchSize X h_size 
-        temp_hidden_states = temp_hidden_states + hidden_states # seq,batch,... -> batch,... 
+        if self.residual:
+            temp_hidden_states = temp_hidden_states + hidden_states # seq,batch,... -> batch,... 
+
         if only_last:
             return self.out(F.relu(temp_hidden_states[-1])) 
         else:
@@ -288,6 +291,40 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
         mask = mask.masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
         mask.requires_grad = False
         return mask
+
+class DriveDQN_simple_fusion2_gru(nn.Module):
+    """-Changing sensor fusion to simple concatenation
+       -Use GRU rnn to decode single action state for q values"""
+    def __init__(self, args):
+        super().__init__()
+        self.args = args
+        self.cnn = Nature_Paper_Conv_Dropout_Torch(args.in_channels, args.h_size, p=args.dropout_cnn, image_shape=args.img_shape)
+        # cnn1d out will be 248 from 128*8=1024 length
+        self.internal_sensor_net = nn.Sequential(nn.Linear(7, args.h_size),
+                                                 nn.ReLU(),
+                                                 nn.Linear(args.h_size, args.h_size))
+        # stacking im and cnn1d-out will be 128+248=376
+        self.rnn = nn.GRU(args.h_size*2, args.h_size, num_layers=1)
+        self.out = nn.Linear(args.h_size, args.act_dim)
+        self.residual = args.residual 
+
+    def forward(self, X_img, X_sensor, X_act):
+        n_frames, b_size = X_img.shape[0], X_img.shape[1]
+        hidden_states = []
+        for i in range(n_frames):
+            X_img_h = self.cnn(X_img[i])
+            X_sensor_h = X_sensor[:,i].transpose(0,2).squeeze(0)
+            X_sensor_h = self.internal_sensor_net(X_sensor_h)
+            X_state_h = torch.concat([X_img_h, X_sensor_h], axis=1)
+            hidden_states.append(X_state_h)
+
+        hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
+        out, h_n = self.rnn(hidden_states)
+        if self.residual:
+            h_n = h_n[-1] + X_img_h
+        else:
+            h_n = h_n[-1]
+        return self.out(F.relu(h_n))
 
 class DriveDQN_simple_fusion2_lstm(nn.Module):
     """-Changing sensor fusion to simple concatenation
@@ -301,9 +338,9 @@ class DriveDQN_simple_fusion2_lstm(nn.Module):
                                                  nn.ReLU(),
                                                  nn.Linear(args.h_size, args.h_size))
         # stacking im and cnn1d-out will be 128+248=376
-        # self.rnn = nn.LSTM(args.h_size*2, args.h_size, num_layers=2)
-        self.rnn = nn.GRU(args.h_size*2, args.h_size, num_layers=1)
+        self.rnn = nn.LSTM(args.h_size*2, args.h_size, num_layers=1)
         self.out = nn.Linear(args.h_size, args.act_dim)
+        self.residual = args.residual
 
     def forward(self, X_img, X_sensor, X_act):
         n_frames, b_size = X_img.shape[0], X_img.shape[1]
@@ -316,9 +353,11 @@ class DriveDQN_simple_fusion2_lstm(nn.Module):
             hidden_states.append(X_state_h)
 
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
-        # out, (h_n, c_n) = self.rnn(hidden_states)
-        out, h_n = self.rnn(hidden_states)
-        h_n = h_n[-1] + X_img_h
+        out, (h_n, c_n) = self.rnn(hidden_states)
+        if self.residual:
+            h_n = h_n[-1] + X_img_h
+        else:
+            h_n = h_n[-1]
         return self.out(F.relu(h_n))
 
 
