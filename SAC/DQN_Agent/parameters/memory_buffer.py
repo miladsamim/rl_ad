@@ -83,7 +83,7 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
     """Assumme that each episode has at least num_frames+1 experieneces.
        Assumme that max length of any episode is smaller than max_buffer_sz.
        else it will be discarded. When max is reached oldest episodes will be fully dropped until under max again."""
-    def __init__(self, num_frames, max_buffer_sz=25_000, batch_size=32):
+    def __init__(self, num_frames, max_buffer_sz=25_000, batch_size=32, process_state=True):
         self.memory_capacity = max_buffer_sz
         self.batch_size = batch_size
         self.avg_ep_len = None 
@@ -95,6 +95,7 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
         self.active_ep_idx = -1 
         self.num_frames = num_frames
         self.ep_min_len = 10 # min 1 is required here
+        self.frame_stacking = not process_state # whether to adj transpose for framestacking 
     
     def __len__(self):
         n_states = sum(self.ep_lengths)
@@ -152,7 +153,8 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
            sensor setup. This configuration works for the HDSensor setup."""
         img_x, steering_x, speed_x, gyro_x, abs1_x, abs2_x, abs3_x, abs4_x, act_x = zip(*[state.values() for state in states])
         img_x = torch.tensor(np.stack(img_x).transpose(0,3,1,2), dtype=torch.float32)
-        # img_x = img_x.transpose(1,2) # due to using default carracer processing
+        if self.frame_stacking:
+            img_x = img_x.transpose(1,2) # due to using default carracer processing
         steering_x = torch.tensor(steering_x, dtype=torch.float32).unsqueeze(-1)
         speed_x = torch.tensor(speed_x, dtype=torch.float32).unsqueeze(-1)
         gyro_x = torch.tensor(gyro_x, dtype=torch.float32).unsqueeze(-1)
