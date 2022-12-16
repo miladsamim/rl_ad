@@ -309,6 +309,7 @@ class DriveDQN_simple_fusion2_gru(nn.Module):
         self.residual = args.residual 
 
     def forward(self, X_img, X_sensor, X_act):
+        print(X_img.shape)
         n_frames, b_size = X_img.shape[0], X_img.shape[1]
         hidden_states = []
         for i in range(n_frames):
@@ -321,6 +322,7 @@ class DriveDQN_simple_fusion2_gru(nn.Module):
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         out, h_n = self.rnn(hidden_states)
         if self.residual:
+            print("using residual")
             h_n = h_n[-1] + X_img_h
         else:
             h_n = h_n[-1]
@@ -395,6 +397,7 @@ class DriveDQN_cnn(nn.Module):
         self.out = nn.Linear(512, args.act_dim)
 
     def forward(self, X_img, X_sensor, X_act):
+        print(X_img.shape)
         X = X_img.squeeze(0)
         X = self.cnn(X)
         return self.out(X)

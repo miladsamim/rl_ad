@@ -1,0 +1,1 @@
+echo --explore_frame_limit 750_000 --model DriveDQN_cnn --n_frames 1
