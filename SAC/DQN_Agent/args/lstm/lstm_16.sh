@@ -1,0 +1,1 @@
+echo --process_state --explore_frame_limit 750_000 --model DriveDQN_simple_fusion2_lstm --n_frames 16
