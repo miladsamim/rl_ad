@@ -254,9 +254,9 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
                                                  nn.ReLU(),
                                                  nn.Linear(args.h_size, args.h_size))
         d_size = 2*args.h_size 
-        decoder_layer = nn.TransformerDecoderLayer(d_model=d_size, nhead=args.n_head, 
+        decoder_layer = nn.TransformerEncoderLayer(d_model=d_size, nhead=args.n_head, 
                                            dim_feedforward=4*d_size, dropout=args.t_dropout, norm_first=args.norm_first)
-        self.temporal_decoder_net = nn.TransformerDecoder(decoder_layer, num_layers=args.n_decs)
+        self.temporal_decoder_net = nn.TransformerEncoder(decoder_layer, num_layers=args.n_decs)
         self.positional_encoder = PositionalEncoding(d_model=args.h_size*2, max_len=64) # max number of time steps
     
         self.out = nn.Linear(d_size, args.act_dim)
@@ -275,11 +275,9 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         hidden_states = self.positional_encoder(hidden_states)
         mask = self._generate_square_subsequent_mask(self.args.n_frames).to(self.args.device)
-        temp_hidden_states = self.temporal_decoder_net(tgt=hidden_states, memory=hidden_states,
-                                                 tgt_mask=mask, memory_mask=mask) # seq_len X batchSize X h_size 
+        temp_hidden_states = self.temporal_decoder_net(hidden_states,mask=mask) # seq_len X batchSize X h_size 
         if self.residual:
             temp_hidden_states = temp_hidden_states + hidden_states # seq,batch,... -> batch,... 
-
         if only_last:
             return self.out(F.relu(temp_hidden_states[-1])) 
         else:
