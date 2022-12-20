@@ -219,7 +219,7 @@ class DriveDQN_simple_fusion2_single_act_dec(nn.Module):
                                          num_decoder_layers=args.n_decs_t, dim_feedforward=4*args.h_size, 
                                          dropout=args.t_dropout, norm_first=args.device, device=args.device)
         self.positional_encoder = PositionalEncoding(d_model=args.h_size*2, max_len=64) # max number of time steps
-    
+        self.residual = args.residual
         self.out = nn.Linear(args.h_size*2, args.act_dim)
         # cnn1d out will be 248 from 128*8=1024 length 
         # stacking im and cnn1d-out will be 128+248=376
@@ -240,6 +240,8 @@ class DriveDQN_simple_fusion2_single_act_dec(nn.Module):
         # dec_in = self.action_emb(self.act_dec_idx.repeat(b_size, 1)).transpose(0,1)
         hidden_state = self.temporal_net(hidden_states, dec_in) # seq_len X batchSize X h_size 
         hidden_state = hidden_state.transpose(0, 1) # seq,batch,... -> batch,seq,...
+        if self.residual:
+            hidden_state = hidden_state + X_state_h.unsqueeze(1) 
         return self.out(F.relu(hidden_state)).squeeze(1)
 
 
