@@ -8,6 +8,7 @@ parser = argparse.ArgumentParser(
                     description = 'Specify setup parameters, model type and model parameters')
 
 # EXPERIMENT PARAMETERS
+parser.add_argument('--pact', action='store_true', help='Use PACT Model as DQN base. Requires a suited drive net.')
 parser.add_argument('--process_state', action='store_true', help='Disables state processing and switches to default env. framestack processing')
 parser.add_argument('--use_all_timesteps', action='store_true', help='Whether to use all timesteps for Q loss')
 parser.add_argument('--explore_frame_limit', type=int, default=250_000, help='The limit which the epsilon should decay towards.')
@@ -52,4 +53,4 @@ def parse_args():
     if errors:
         raise ValueError(errors)
     else:
-        return agent_setup, carracing_setup
+        return args.pact, agent_setup, carracing_setup

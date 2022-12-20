@@ -1,0 +1,1 @@
+echo --pact --use_all_timesteps --process_state --explore_frame_limit 750_000 --model PDriveDQN --n_frames 16
