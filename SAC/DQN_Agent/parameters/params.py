@@ -17,5 +17,6 @@ model_params.n_decs = 2 # number of decoder layers in decoder only arch (gpt)
 model_params.norm_first = False # whether to normalize before applying attention layers
 model_params.t_dropout = 0.1 # dropout rate in the transformers
 model_params.c_dropout = 0.3 # dropout rate in sensor cnns
+model_params.accel = True # whether to reshape all temporal states to single tensor, faster but requires enough gpu memory
 model_params.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model_params.residual = False
