@@ -65,7 +65,7 @@ class PACTBase(nn.Module):
         embd_list = [tok_embd_dict[input_type] for input_type in ["state", "action"]]
 
         state_act_seq = torch.stack(embd_list, dim=1).reshape(t*2, b, self.h_size)
-        mask = self._generate_square_subsequent_mask(t*2)
+        mask = self._generate_square_subsequent_mask(t*2).to(args.device)
         out_embd = self.gpt(state_act_seq + pos_local_h + pos_global_h,
                             mask=mask)
         

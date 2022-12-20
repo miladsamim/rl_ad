@@ -63,7 +63,7 @@ class DQN_Agent:
         self.q_grid = None
         self.dqn = architecture(args).to(args.device)
         self.target_dqn = architecture(args).to(args.device)
-        self.pact_model = PACTPretrain(args)
+        self.pact_model = PACTPretrain(args).to(args.device)
         self.update_fixed_target_weights()
         self.learning_rate = learning_rate#0.00025# learning_rate() # atari learning rate
         self.batch_size = batch_size
@@ -228,7 +228,7 @@ class DQN_Agent:
             state_img, _ = self.env.reset()
             state = self.process_state(state_img, 0, process=self.process)
             self.replay_memory.add_experience(state, 0, 0, False, new_episode=True) # initialize new ep in buffer 
-            state_frame_stack = deque(maxlen=self.args.n_frames)
+            state_frame_stack = deque(maxlen=1)#deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
             if not USE_V2:
@@ -311,7 +311,7 @@ class DQN_Agent:
             done = False
             state_img, _ = self.env.reset(test=True)
             state = self.process_state(state_img, 0, process=self.process)
-            state_frame_stack = deque(maxlen=self.args.n_frames)
+            state_frame_stack = deque(maxlen=1)#deque(maxlen=self.args.n_frames)
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
             episode_reward = 0
