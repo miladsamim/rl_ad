@@ -47,6 +47,9 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
         if model_name == 'DriveDQN_cnn':
             agent_racing_dict['process_state'] = False
             car_racing_dict['process_state'] = True
+        else: 
+            agent_racing_dict['process_state'] = True
+            car_racing_dict['process_state'] = False
 
         environment = env.CarRacing(**car_racing_dict, render=RENDER)
         control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
