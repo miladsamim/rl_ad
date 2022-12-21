@@ -61,10 +61,12 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
     return np.mean(rewards_hist), np.std(rewards_hist)
 
 def write_stats(path, model_ids, means, stds):
-	with open(path, 'w') as fp:
-		fp.write('model_id,mean reward,std\n')
-		for i in range(len(means)):
-			fp.write(f'{str(model_ids[i])},{str(means[i])},{str(stds[i])}\n')   
+    with open(path, 'w') as fp:
+        fp.write('model_id,mean reward,std\n')
+        
+    for i in range(len(means)):
+        model_id = str(model_ids[i]) if model_ids else str(model_ids)
+        fp.write(f'{model_id},{str(means[i])},{str(stds[i])}\n')   
 
 NUM_EPS = 100
 RENDER = False
