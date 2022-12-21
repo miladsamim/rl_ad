@@ -61,11 +61,12 @@ def write_stats(path, model_ids, means, stds):
 		for i in range(len(means)):
 			fp.write(f'{str(model_ids[i])},{str(means[i])},{str(stds[i])}\n')   
 
-NUM_EPS = 2
-RENDER = True
+NUM_EPS = 100
+RENDER = False
+REMOTE = True
 if __name__ == '__main__':
     for model_name, spec in needs_to_run.items():
-        if model_name in ['DriveDQN_simple_fusion2_gru_16f_Trueres', 'DriveDQN_simple_fusion2_gru_16f_Falseres']:
+        if model_name in ['DriveDQN_simple_fusion2_gru_16f_Trueres', 'DriveDQN_simple_fusion2_gru_16f_Falseres'] or REMOTE:
             should_run, model_ids = spec 
             if should_run:
                 print("Evaluating model: ", model_name)
