@@ -6,7 +6,6 @@ import sys
 # import agent
 import agent_torch as agent
 import agent_torch_trans as agent_trans
-import agent_torch_pact as agent_pact
 import environment as env
 import parameters.setup as setup
 from args_tester import parse_args
@@ -20,12 +19,9 @@ from args_tester import parse_args
 
 # environment = env.CarRacing(**setup.setup_dict['car racing'])
 # control = agent.DQN_Agent(environment=environment, **setup.setup_dict['agent'])
-use_pact, agent_setup, carracing_setup = parse_args() 
+agent_setup, carracing_setup = parse_args() 
 environment = env.CarRacing(**carracing_setup)
-if use_pact:
-    control = agent_pact.DQN_Agent(environment=environment, **agent_setup)
-else:
-    control = agent_trans.DQN_Agent(environment=environment, **agent_setup)
+control = agent_trans.DQN_Agent(environment=environment, **agent_setup)
 
 #####################################  Traning a model  ################################################
 control.train()
