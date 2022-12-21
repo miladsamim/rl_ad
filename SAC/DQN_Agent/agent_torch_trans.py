@@ -287,10 +287,10 @@ class DQN_Agent:
             for i in range(self.args.n_frames):
                 state_frame_stack.append(state)
             episode_reward = 0
-            if not visualize and not USE_V2:
-                self.test_env.render()
+            if not visualize or not USE_V2:
+                self.env.render()
             while not done:
-                if visualize and not USE_V2:
+                if visualize or not USE_V2:
                     self.env.render()
                 action = self.get_action(state_frame_stack, epsilon=0)
                 next_state_img, reward, done, info, in_grass = self.env.step(action, test=True)
