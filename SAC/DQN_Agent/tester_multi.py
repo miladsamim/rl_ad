@@ -67,7 +67,7 @@ def write_stats(path, model_ids, means, stds):
             model_id = str(model_ids[i]) if model_ids else str(model_ids)
             fp.write(f'{model_id},{str(means[i])},{str(stds[i])}\n')   
 
-NUM_EPS = 100
+NUM_EPS = 3
 RENDER = False
 REMOTE = True
 if __name__ == '__main__':
