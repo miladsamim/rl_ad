@@ -37,12 +37,16 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
     rewards_hist = []
     for i in range(NUM_EPS):
         car_racing_dict = setup.setup_dict_trans['car racing']
-        car_racing_dict['seed'] = [i]
-
         agent_racing_dict = setup.setup_dict_trans['agent']
+
+        car_racing_dict['seed'] = [i]
         agent_racing_dict['architecture'] = name_2_model[model_name]
         agent_racing_dict['architecture_args'].n_frames = n_frames
         agent_racing_dict['architecture_args'].residual = residual
+
+        if model_name == 'DriveDQN_cnn':
+            agent_racing_dict['process_state'] = False
+            car_racing_dict['process_state'] = True
 
         environment = env.CarRacing(**car_racing_dict, render=RENDER)
         control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
