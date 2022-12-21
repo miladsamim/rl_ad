@@ -49,6 +49,7 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
 
         control.load(model_path)
         mean, std, rewards = control.test(1, RENDER)
+        print(f"Model: {model_name} | N_frames: {n_frames} | Residual {residual} | Run: {i+1}/{NUM_EPS} | Reward: {rewards[0]}")
         rewards_hist.append(rewards[0])
         del environment
         del control 
