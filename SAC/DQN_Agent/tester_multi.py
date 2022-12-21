@@ -25,11 +25,12 @@ needs_to_run = {'DriveDQN_cnn_1f_Falseres': [True, None],
                 'DriveDQN_simple_fusion2_gru_4f_Falseres': [True, [1900, 2000, 2100, 2900]],
                 'DriveDQN_simple_fusion2_gru_8f_Falseres': [True, [1900, 2000, 2100, 2900]],
                 'DriveDQN_simple_fusion2_gru_16f_Falseres': [True, [2000, 2100, 2200, 2900]],
-                'DriveDQN_simple_fusion2_gru_8f_Trueres': [True, [2900]],
+                'DriveDQN_simple_fusion2_gru_8f_Trueres': [True, [2700, 2800, 2900]],
                 'DriveDQN_simple_fusion2_gru_16f_Trueres': [True, [2700, 2800, 2900]],
-                'DriveDQN_simple_fusion2_lstm_4f_Falseres': [True, [2200,2300,2400,2900]],
-                'DriveDQN_simple_fusion2_lstm_8f_Falseres': [True, [1900, 2000, 2100,2900]],
-                'DriveDQN_simple_fusion2_lstm_16f_Falseres': [True, []],
+                'DriveDQN_simple_fusion2_lstm_4f_Falseres': [True, [2200,2300,2400, 2900]],
+                'DriveDQN_simple_fusion2_lstm_8f_Falseres': [True, [1900, 2000, 2100, 2900]],
+                'DriveDQN_simple_fusion2_lstm_16f_Falseres': [True, [1800, 1900, 2000, 2900]],
+                'DriveDQN_simple_fusion2_lstm_16f_Trueres': [True, [2700, 2800, 2900]],
                 'DriveDQN_simple_fusion2_lstm_8f_Trueres': [True, [2700, 2800, 2900]]}
 
 def eval_model_checkpoint(model_path, model_name, n_frames, residual):
@@ -43,7 +44,7 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
         agent_racing_dict['architecture_args'].n_frames = n_frames
         agent_racing_dict['architecture_args'].residual = residual
 
-        environment = env.CarRacing(**car_racing_dict)
+        environment = env.CarRacing(**car_racing_dict, render=RENDER)
         control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
 
         control.load(model_path)
@@ -79,7 +80,7 @@ if __name__ == '__main__':
                     means.append(mean)
                     stds.append(std)
 
-                write_stats('evaluation\\'+model_name+'.csv', model_ids, means, stds)
+                write_stats('evaluation\\test_runs\\'+model_name+'.csv', model_ids, means, stds)
             else: 
                 print("Skipping model: ", model_name)
         else:

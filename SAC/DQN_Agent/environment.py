@@ -18,10 +18,13 @@ class CarRacing:
     # - history_pick: Size of history
     # - seed: List of seeds to sample from during training. Default is none (random games)
     def __init__(self, type="CarRacing", history_pick=4, seed=None, detect_edges=False, detect_grass=False, flip=False,
-                 process_state=True, use_frame_skip=True, use_episode_flipping=True):
+                 process_state=True, use_frame_skip=True, use_episode_flipping=True, render=False):
         self.name = type + str(time.time())
         if USE_V2:
-            self.env = gym.make(type + '-v2', new_step_api=True)
+            if render:
+                self.env = gym.make(type + '-v2', new_step_api=True, render_mode='human')
+            else:
+                self.env = gym.make(type + '-v2', new_step_api=True)
         else:
             self.env = gym.make(type + '-v0')
         self.image_dimension = [96,96]
@@ -51,15 +54,16 @@ class CarRacing:
 
     # resets the environment and returns the initial state
     def reset(self, test=False):
-        if self.seed:
-            self.env.seed(random.choice(self.seed))
         if self.use_episode_flipping:
             self.flip_episode = random.random() > 0.5 and not test and self.flip
         else:
             self.flip_episode = False 
         
         # discern between gym versions
-        state = self.env.reset()
+        if self.seed:
+            state = self.env.reset(seed=random.choice(self.seed))
+        else:
+            state = self.env.reset()
 
         if self.process_state:
             return self.process(state)
