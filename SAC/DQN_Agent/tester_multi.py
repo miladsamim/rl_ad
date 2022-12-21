@@ -47,7 +47,7 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
         control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
 
         control.load(model_path)
-        mean, std, rewards = control.test(1, True)
+        mean, std, rewards = control.test(1, RENDER)
         rewards_hist.append(rewards[0])
         del environment
         del control 
@@ -61,6 +61,7 @@ def write_stats(path, model_ids, means, stds):
 			fp.write(f'{str(model_ids[i])},{str(means[i])},{str(stds[i])}\n')   
 
 NUM_EPS = 2
+RENDER = True
 if __name__ == '__main__':
     for model_name, spec in needs_to_run.items():
         if model_name in ['DriveDQN_simple_fusion2_gru_16f_Trueres', 'DriveDQN_simple_fusion2_gru_16f_Falseres']:
