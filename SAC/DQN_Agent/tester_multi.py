@@ -2,8 +2,6 @@ import os
 import sys
 sys.dont_write_bytecode = True
 os.chdir(sys.path[0])
-print(os.getcwd())
-sys.exit()
 
 import numpy as np
 import agent_torch_trans as agent
