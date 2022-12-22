@@ -2,6 +2,8 @@ import os
 import sys
 sys.dont_write_bytecode = True
 os.chdir(sys.path[0])
+print(os.getcwd())
+sys.exit()
 
 import numpy as np
 import agent_torch_trans as agent
@@ -92,7 +94,6 @@ if __name__ == '__main__':
                 mean, std = eval_model_checkpoint(checkpoint, architecure_name, n_frames, residual)
                 means.append(mean)
                 stds.append(std)
-
-            write_stats('evaluation\\test_runs\\'+model_name+'.csv', model_ids, means, stds)
+            write_stats(os.path.join('evaluation','test_runs', model_name+'.csv'), model_ids, means, stds)
         else: 
             print("Skipping model: ", model_name)
