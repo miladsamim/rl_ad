@@ -21,12 +21,12 @@ def get_checkpoints(model_name, model_ids):
         checkpoints.append(os.path.join('models', model_name, model_name+'.pt'))
     return checkpoints
 
-needs_to_run = {'DriveDQN_cnn_1f_Falseres': [True, None],
-                'DriveDQN_simple_fusion2_gru_4f_Falseres': [True, [1900, 2000, 2100, 2900]],
-                'DriveDQN_simple_fusion2_gru_8f_Falseres': [True, [1900, 2000, 2100, 2900]],
-                'DriveDQN_simple_fusion2_gru_16f_Falseres': [True, [2000, 2100, 2200, 2900]],
+needs_to_run = {'DriveDQN_cnn_1f_Falseres': [False, None],
+                'DriveDQN_simple_fusion2_gru_4f_Falseres': [False, [1900, 2000, 2100, 2900]],
+                'DriveDQN_simple_fusion2_gru_8f_Falseres': [False, [1900, 2000, 2100, 2900]],
+                'DriveDQN_simple_fusion2_gru_16f_Falseres': [False, [2000, 2100, 2200, 2900]],
                 'DriveDQN_simple_fusion2_gru_8f_Trueres': [True, [2700, 2800, 2900]],
-                'DriveDQN_simple_fusion2_gru_16f_Trueres': [True, [2700, 2800, 2900]],
+                'DriveDQN_simple_fusion2_gru_16f_Trueres': [False, [2700, 2800, 2900]],
                 'DriveDQN_simple_fusion2_lstm_4f_Falseres': [True, [2200,2300,2400, 2900]],
                 'DriveDQN_simple_fusion2_lstm_8f_Falseres': [True, [1900, 2000, 2100, 2900]],
                 'DriveDQN_simple_fusion2_lstm_16f_Falseres': [True, [1800, 1900, 2000, 2900]],
@@ -75,23 +75,20 @@ RENDER = False
 REMOTE = True
 if __name__ == '__main__':
     for model_name, spec in needs_to_run.items():
-        if model_name in ['DriveDQN_simple_fusion2_gru_16f_Trueres', 'DriveDQN_simple_fusion2_gru_16f_Falseres'] or REMOTE:
-            should_run, model_ids = spec 
-            if should_run:
-                print("Evaluating model: ", model_name)
-                checkpoints = get_checkpoints(model_name, model_ids)
-                # Run Model Checkpoint
-                means, stds = [], []
-                for checkpoint in checkpoints:
-                    n_frames = int(model_name.split('_')[-2][:-1])
-                    residual = model_name.split('_')[-1][0] == 'T'
-                    architecure_name = '_'.join(model_name.split('_')[:-2])
-                    mean, std = eval_model_checkpoint(checkpoint, architecure_name, n_frames, residual)
-                    means.append(mean)
-                    stds.append(std)
+        should_run, model_ids = spec 
+        if should_run:
+            print("Evaluating model: ", model_name)
+            checkpoints = get_checkpoints(model_name, model_ids)
+            # Run Model Checkpoint
+            means, stds = [], []
+            for checkpoint in checkpoints:
+                n_frames = int(model_name.split('_')[-2][:-1])
+                residual = model_name.split('_')[-1][0] == 'T'
+                architecure_name = '_'.join(model_name.split('_')[:-2])
+                mean, std = eval_model_checkpoint(checkpoint, architecure_name, n_frames, residual)
+                means.append(mean)
+                stds.append(std)
 
-                write_stats('evaluation\\test_runs\\'+model_name+'.csv', model_ids, means, stds)
-            else: 
-                print("Skipping model: ", model_name)
-        else:
+            write_stats('evaluation\\test_runs\\'+model_name+'.csv', model_ids, means, stds)
+        else: 
             print("Skipping model: ", model_name)
