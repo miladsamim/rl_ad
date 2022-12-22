@@ -55,7 +55,7 @@ class DQN_Agent:
     def __init__(self, environment, architecture, architecture_args, explore_rate, learning_rate,
                  batch_size, memory_capacity, num_episodes, learning_rate_drop_frame_limit,
                  target_update_frequency, discount=0.99, process_state=True, use_all_timesteps=False,
-                 delta=1, model_name=None):
+                 accel=False, delta=1, model_name=None):
         self.args = args = architecture_args
         self.env = environment
         self.action_size = self.env.action_space_size
@@ -71,7 +71,7 @@ class DQN_Agent:
         self.explore_rate = explore_rate()
         self.criterion = nn.HuberLoss()
 
-        self.model_name = architecture.__name__ + f'_{self.args.n_frames}f_' + f'{self.args.residual}res'
+        self.model_name = architecture.__name__ + f'_{self.args.n_frames}f_' + f'{self.args.residual}res' + '_E'
         self.model_path = os.path.dirname(os.path.realpath(__file__)) + '/models/' + self.model_name
         self.log_path = self.model_path + '/log'
         self.writer = SummaryWriter(self.log_path)
@@ -90,6 +90,7 @@ class DQN_Agent:
         # self.replay_memory = MemoryBufferSimple(args.n_frames, memory_capacity)
         self.process = process_state
         self.use_all_timesteps = use_all_timesteps
+        self.accel = accel
         self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity, process_state=process_state)
         self.replay_memory_sampler = torch.utils.data.DataLoader(self.replay_memory, batch_size=batch_size, shuffle=True)
         # self.training_metadata = utils.Training_Metadata(frame=self.sess.run(self.frames), frame_limit=learning_rate_drop_frame_limit,

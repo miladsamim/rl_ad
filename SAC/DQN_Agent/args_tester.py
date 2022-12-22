@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(
 
 # EXPERIMENT PARAMETERS
 parser.add_argument('--process_state', action='store_true', help='Disables state processing and switches to default env. framestack processing')
+parser.add_argument('--accel', action='store_true', help='Pushes temporal states onto gpu on the same time. is faster if gpu has enough memory')
 parser.add_argument('--use_all_timesteps', action='store_true', help='Whether to use all timesteps for Q loss')
 parser.add_argument('--explore_frame_limit', type=int, default=250_000, help='The limit which the epsilon should decay towards.')
 # MODEL PARAMETERS
@@ -28,6 +29,7 @@ def parse_args():
     agent_setup['process_state'] = args.process_state
     carracing_setup['process_state'] = not args.process_state
 
+
     # use_all_timesteps
     agent_setup['use_all_timesteps'] = args.use_all_timesteps
 
@@ -39,6 +41,9 @@ def parse_args():
         errors += f'{args.model} is not a valid model name.\n'
     else:
         agent_setup['architecture'] = name_2_model[args.model]
+
+    # accel 
+    model_params.accel = args.accel
 
     # n_frames
     model_params.n_frames = args.n_frames

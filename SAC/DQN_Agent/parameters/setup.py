@@ -87,6 +87,7 @@ setup_dict_trans = {
 		'discount': 0.99,
 		'process_state': True,
 		'use_all_timesteps': False,
+		'accel': False,
 	},
 
 	'car racing': {

@@ -60,13 +60,14 @@ class DriveDQN_simple_fusion(nn.Module):
         self.action_emb = nn.Embedding(args.act_dim, args.h_size)
         self.action_emb.weight.requires_grad = False
         self.act_dec_idx = torch.arange(args.act_dim).to(device=args.device) 
-        self.out = nn.Linear(args.h_size, 1)
+        self.out = nn.Linear(args.h_size, args.act_dim)
         # cnn1d out will be 248 from 128*8=1024 length 
         self.cnn_1d_sensor = nn.Conv1d(8, 8, kernel_size=8, stride=4, groups=8)
         # stacking im and cnn1d-out will be 128+248=376
         self.merge_sensors = nn.Linear(376, args.h_size)
+        self.residual = args.residual
 
-    def forward(self, X_img, X_sensor, X_act):
+    def forward(self, X_img, X_sensor, X_act, only_last=True):
         n_frames, b_size = X_img.shape[0], X_img.shape[1]
         hidden_states = []
         dec_in = torch.ones(1, b_size, self.args.h_size, requires_grad=False, device=self.args.device)
@@ -82,10 +83,14 @@ class DriveDQN_simple_fusion(nn.Module):
         hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         hidden_states = self.positional_encoder(hidden_states)
         # dec_in = torch.rand(self.n_act_nets, b_size, self.args.h_size, requires_grad=False, device=self.args.device)
-        dec_in = self.action_emb(self.act_dec_idx.repeat(b_size, 1)).transpose(0,1)
-        hidden_state = self.temporal_net(hidden_states, dec_in) # seq_len X batchSize X h_size 
-        hidden_state = hidden_state.transpose(0, 1) # seq,batch,... -> batch,seq,...
-        return self.out(hidden_state).squeeze(2)
+        # dec_in = self.action_emb(self.act_dec_idx.repeat(b_size, 1)).transpose(0,1)
+        t_hidden_states = self.temporal_net(hidden_states, hidden_states) # seq_len X batchSize X h_size 
+        if self.residual:
+            t_hidden_states = t_hidden_states + hidden_states
+        if only_last:
+            return self.out(t_hidden_states[-1])
+        else:
+            return self.out(t_hidden_states)
 
 class DriveDQN_simple_fusion_learnable_act_embs(nn.Module):
     """-Changing sensor fusion to simple concatenation
@@ -224,7 +229,7 @@ class DriveDQN_simple_fusion2_single_act_dec(nn.Module):
         # cnn1d out will be 248 from 128*8=1024 length 
         # stacking im and cnn1d-out will be 128+248=376
 
-    def forward(self, X_img, X_sensor, X_act):
+    def forward(self, X_img, X_sensor, X_act, only_last=True):
         n_frames, b_size = X_img.shape[0], X_img.shape[1]
         hidden_states = []
         for i in range(n_frames):
@@ -242,8 +247,10 @@ class DriveDQN_simple_fusion2_single_act_dec(nn.Module):
         hidden_state = hidden_state.transpose(0, 1) # seq,batch,... -> batch,seq,...
         if self.residual:
             hidden_state = hidden_state + X_state_h.unsqueeze(1) 
-        return self.out(F.relu(hidden_state)).squeeze(1)
-
+        if only_last:
+            return self.out(F.relu(hidden_state[-1])) 
+        else:
+            return self.out(F.relu(hidden_state))
 
 class DriveDQN_simple_fusion2_decoder(nn.Module):
     """-Changing sensor fusion to simple concatenation
@@ -308,24 +315,29 @@ class DriveDQN_simple_fusion2_gru(nn.Module):
         self.rnn = nn.GRU(args.h_size*2, args.h_size, num_layers=1)
         self.out = nn.Linear(args.h_size, args.act_dim)
         self.residual = args.residual 
+        self.accel = args.accel
 
     def forward(self, X_img, X_sensor, X_act):
-        n_frames, b_size = X_img.shape[0], X_img.shape[1]
+        n_frames, b_size, c, w, h = X_img.size()
         hidden_states = []
-        for i in range(n_frames):
-            X_img_h = self.cnn(X_img[i])
-            X_sensor_h = X_sensor[:,i].transpose(0,2).squeeze(0)
-            X_sensor_h = self.internal_sensor_net(X_sensor_h)
-            X_state_h = torch.concat([X_img_h, X_sensor_h], axis=1)
-            hidden_states.append(X_state_h)
+        if self.accel: 
+            X_img_h = self.cnn(X_img.reshape(-1, c, w, h)).reshape(n_frames, b_size, -1)
+            X_sensor_h = self.internal_sensor_net(X_sensor.permute(1,2,0,3).squeeze(-1))
+            hidden_states = torch.concat([X_img_h, X_sensor_h], dim=2)
+        else:
+            for i in range(n_frames):
+                X_img_h = self.cnn(X_img[i])
+                X_sensor_h = X_sensor[:,i].transpose(0,2).squeeze(0)
+                X_sensor_h = self.internal_sensor_net(X_sensor_h)
+                X_state_h = torch.concat([X_img_h, X_sensor_h], dim=1)
+                hidden_states.append(X_state_h)
+            hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
 
-        hidden_states = torch.stack(hidden_states, axis=0) # seqLen X batchSize X h_size 
         out, h_n = self.rnn(hidden_states)
         if self.residual:
-            h_n = h_n[-1] + X_img_h
-        else:
-            h_n = h_n[-1]
-        return self.out(F.relu(h_n))
+            h_n = h_n + X_img_h
+
+        return self.out(F.relu(h_n[-1]))
 
 class DriveDQN_simple_fusion2_lstm(nn.Module):
     """-Changing sensor fusion to simple concatenation
