@@ -21,12 +21,12 @@ def get_checkpoints(model_name, model_ids):
         checkpoints.append(os.path.join('models', model_name, model_name+'.pt'))
     return checkpoints
 
-needs_to_run = {'DriveDQN_cnn_1f_Falseres': [False, None],
-                'DriveDQN_simple_fusion2_gru_4f_Falseres': [False, [1900, 2000, 2100, 2900]],
-                'DriveDQN_simple_fusion2_gru_8f_Falseres': [False, [1900, 2000, 2100, 2900]],
-                'DriveDQN_simple_fusion2_gru_16f_Falseres': [False, [2000, 2100, 2200, 2900]],
+needs_to_run = {'DriveDQN_cnn_1f_Falseres': [True, None],
+                'DriveDQN_simple_fusion2_gru_4f_Falseres': [True, [1900, 2000, 2100, 2900]],
+                'DriveDQN_simple_fusion2_gru_8f_Falseres': [True, [1900, 2000, 2100, 2900]],
+                #'DriveDQN_simple_fusion2_gru_16f_Falseres': [False, [2000, 2100, 2200, 2900]],
                 'DriveDQN_simple_fusion2_gru_8f_Trueres': [True, [2700, 2800, 2900]],
-                'DriveDQN_simple_fusion2_gru_16f_Trueres': [False, [2700, 2800, 2900]],
+                #'DriveDQN_simple_fusion2_gru_16f_Trueres': [False, [2700, 2800, 2900]],
                 'DriveDQN_simple_fusion2_lstm_4f_Falseres': [True, [2200,2300,2400, 2900]],
                 'DriveDQN_simple_fusion2_lstm_8f_Falseres': [True, [1900, 2000, 2100, 2900]],
                 'DriveDQN_simple_fusion2_lstm_16f_Falseres': [True, [1800, 1900, 2000, 2900]],
@@ -64,13 +64,14 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
     return np.mean(rewards_hist), np.std(rewards_hist)
 
 def write_stats(path, model_ids, means, stds):
+    print("Writing to ", path)
     with open(path, 'w') as fp:
         fp.write('model_id,mean reward,std\n')        
         for i in range(len(means)):
             model_id = str(model_ids[i]) if model_ids else str(model_ids)
             fp.write(f'{model_id},{str(means[i])},{str(stds[i])}\n')   
 
-NUM_EPS = 100
+NUM_EPS = 1
 RENDER = False
 REMOTE = True
 if __name__ == '__main__':
