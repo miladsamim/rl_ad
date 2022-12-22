@@ -1,12 +1,12 @@
+import os 
 import sys
 sys.dont_write_bytecode = True
+os.chdir(sys.path[0])
 
-import sys
 import numpy as np
 import agent_torch_trans as agent
 import environment as env
 #import tensorflow as tf
-import os 
 import parameters.setup as setup
 from parameters import name_2_model
 
