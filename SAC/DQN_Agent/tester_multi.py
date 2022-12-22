@@ -35,31 +35,33 @@ needs_to_run = {'DriveDQN_cnn_1f_Falseres': [True, None],
 
 def eval_model_checkpoint(model_path, model_name, n_frames, residual):
     rewards_hist = []
+    # Prepare env and agent
+    environment = env.CarRacing(**car_racing_dict, render=RENDER)
+    control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
+    car_racing_dict = setup.setup_dict_trans['car racing']
+    agent_racing_dict = setup.setup_dict_trans['agent']
+
+    agent_racing_dict['architecture'] = name_2_model[model_name]
+    agent_racing_dict['architecture_args'].n_frames = n_frames
+    agent_racing_dict['architecture_args'].residual = residual
+
+    if model_name == 'DriveDQN_cnn':
+        agent_racing_dict['process_state'] = False
+        car_racing_dict['process_state'] = True
+    else: 
+        agent_racing_dict['process_state'] = True
+        car_racing_dict['process_state'] = False
+    # load model
+    control.load(model_path)
     for i in range(NUM_EPS):
-        car_racing_dict = setup.setup_dict_trans['car racing']
-        agent_racing_dict = setup.setup_dict_trans['agent']
-
-        car_racing_dict['seed'] = [i]
-        agent_racing_dict['architecture'] = name_2_model[model_name]
-        agent_racing_dict['architecture_args'].n_frames = n_frames
-        agent_racing_dict['architecture_args'].residual = residual
-
-        if model_name == 'DriveDQN_cnn':
-            agent_racing_dict['process_state'] = False
-            car_racing_dict['process_state'] = True
-        else: 
-            agent_racing_dict['process_state'] = True
-            car_racing_dict['process_state'] = False
-
-        environment = env.CarRacing(**car_racing_dict, render=RENDER)
-        control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
-
-        control.load(model_path)
+        # seed env
+        environment.seed = [i]
         mean, std, rewards = control.test(1, RENDER)
         print(f"Model: {model_name} | N_frames: {n_frames} | Residual {residual} | Run: {i+1}/{NUM_EPS} | Reward: {rewards[0]}")
         rewards_hist.append(rewards[0])
-        del environment
-        del control 
+
+    del environment
+    del control 
 
     return np.mean(rewards_hist), np.std(rewards_hist)
 
