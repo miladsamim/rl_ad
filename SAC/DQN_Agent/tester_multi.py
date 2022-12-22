@@ -36,8 +36,6 @@ needs_to_run = {'DriveDQN_cnn_1f_Falseres': [True, None],
 def eval_model_checkpoint(model_path, model_name, n_frames, residual):
     rewards_hist = []
     # Prepare env and agent
-    environment = env.CarRacing(**car_racing_dict, render=RENDER)
-    control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
     car_racing_dict = setup.setup_dict_trans['car racing']
     agent_racing_dict = setup.setup_dict_trans['agent']
 
@@ -51,6 +49,9 @@ def eval_model_checkpoint(model_path, model_name, n_frames, residual):
     else: 
         agent_racing_dict['process_state'] = True
         car_racing_dict['process_state'] = False
+    # Build env
+    environment = env.CarRacing(**car_racing_dict, render=RENDER)
+    control = agent.DQN_Agent(environment=environment, **agent_racing_dict)
     # load model
     control.load(model_path)
     for i in range(NUM_EPS):
