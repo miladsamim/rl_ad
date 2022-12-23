@@ -146,7 +146,7 @@ class DQN_Agent:
         X_act = states[-1].transpose(0,1).to(args.device)
         cur_state = (X_img[:-1], X_sensor[:,:-1], X_act[:-1])
         next_state = (X_img[1:], X_sensor[:, 1:], X_act[1:])
-        actions = X_act[:-1].unsqueeze(-1) # as state actions are from on t
+        actions = X_act[1:].unsqueeze(-1) # as state actions are from t+1
         rewards = rewards[...,None].to(args.device)
         dones = dones[...,None].to(args.device)
 
