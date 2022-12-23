@@ -35,9 +35,9 @@ needs_to_run = {
                 # 'DriveDQN_simple_fusion2_lstm_8f_Trueres': [True, [2700, 2800, 2900]],
                 # 'DriveDQN_simple_fusion2_single_act_dec_4f_Falseres': [True, [1600,1700,1800,2900]],
                 # 'DriveDQN_simple_fusion2_single_act_dec_8f_Falseres': [True, [800,900,2900]],
-                'DriveDQN_simple_fusion2_single_act_dec_16f_Falseres': [True, [2700,2800,2900]],
+                # 'DriveDQN_simple_fusion2_single_act_dec_16f_Falseres': [True, [2700,2800,2900]],
                 # 'DriveDQN_simple_fusion2_single_act_dec_8f_Trueres': [True, [2300,2400,2500,2900]],
-                # 'DriveDQN_simple_fusion2_single_act_dec_16f_Trueres': [True, []],
+                'DriveDQN_simple_fusion2_single_act_dec_16f_Trueres': [True, [1900,2000,2100,2900]],
                 }
 
 def eval_model_checkpoint(model_path, model_name, n_frames, residual):
