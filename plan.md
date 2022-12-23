@@ -51,6 +51,15 @@
 - :heavy_check_mark: set up a set of scenarios to train on for 3M steps
 - :heavy_check_mark: start training 
 
+# Preparation for Test 1
+- :heavy_check_mark: new Memory Buffer
+- :heavy_check_mark: Set up model
+    - check model trains, evals
+    - check that state, actions matches temporally 
+- :heavy_check_mark: Check that npc actions are matched well
+- Train for StraightDriving
+- Add scenarios
+
 # Next step
 - Evaluate setup
 - More complex scenarios
