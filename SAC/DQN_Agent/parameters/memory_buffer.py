@@ -83,7 +83,7 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
     """Assumme that each episode has at least num_frames+1 experieneces.
        Assumme that max length of any episode is smaller than max_buffer_sz.
        else it will be discarded. When max is reached oldest episodes will be fully dropped until under max again."""
-    def __init__(self, num_frames, max_buffer_sz=25_000, batch_size=32, process_state=True):
+    def __init__(self, num_frames, max_buffer_sz=25_000, batch_size=32, process_state=True, all_steps=False):
         self.memory_capacity = max_buffer_sz
         self.batch_size = batch_size
         self.avg_ep_len = None 
@@ -96,6 +96,7 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
         self.num_frames = num_frames
         self.ep_min_len = 10 # min 1 is required here
         self.frame_stacking = not process_state # whether to adj transpose for framestacking 
+        self.all_steps = all_steps
     
     def __len__(self):
         n_states = sum(self.ep_lengths)
@@ -175,7 +176,12 @@ class MemoryBufferSeparated(torch.utils.data.Dataset):
         t_end_idx = t_idx + self.num_frames 
         states = self._process_states(self.ep_states[ep_idx][t_idx:t_end_idx+1]) # +1 as we need next state as well, and : (slicing) is [)
         # t_end_idx - 1 as it is adjusted in the training loop 
-        action = torch.tensor(self.ep_actions[ep_idx][t_end_idx-1], dtype=torch.int64) # because 0 indexed we need -1
-        reward = torch.tensor(self.ep_rewards[ep_idx][t_end_idx-1], dtype=torch.float32)
-        dones = torch.tensor(self.ep_dones[ep_idx][t_end_idx-1], dtype=torch.float32)
+        if self.all_steps:
+            action = torch.tensor(self.ep_actions[ep_idx][t_idx:t_end_idx], dtype=torch.int64) 
+            reward = torch.tensor(self.ep_rewards[ep_idx][t_idx:t_end_idx], dtype=torch.float32)
+            dones = torch.tensor(self.ep_dones[ep_idx][t_idx:t_end_idx], dtype=torch.float32)
+        else:
+            action = torch.tensor(self.ep_actions[ep_idx][t_end_idx-1], dtype=torch.int64) # because 0 indexed we need -1
+            reward = torch.tensor(self.ep_rewards[ep_idx][t_end_idx-1], dtype=torch.float32)
+            dones = torch.tensor(self.ep_dones[ep_idx][t_end_idx-1], dtype=torch.float32)
         return states, action, reward, dones

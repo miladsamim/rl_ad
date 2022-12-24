@@ -1,7 +1,7 @@
 import torch 
 from parameters import dotdict
 model_params = dotdict()
-model_params.in_channels = 3 
+model_params.in_channels = 3
 model_params.h_size = 128 # dimensionality of latent vectors
 model_params.dropout_cnn = 0.3
 model_params.img_shape = (96,96)

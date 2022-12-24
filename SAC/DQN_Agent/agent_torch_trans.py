@@ -83,7 +83,6 @@ class DQN_Agent:
             for key, value in architecture_args.items(): 
                 f.write('%s:%s\n' % (key, value))
 
-
         # Training parameters setup
         self.target_update_frequency = target_update_frequency
         self.discount = discount
@@ -91,7 +90,7 @@ class DQN_Agent:
         self.process = process_state
         self.use_all_timesteps = use_all_timesteps
         self.accel = accel
-        self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity, process_state=process_state)
+        self.replay_memory = MemoryBufferSeparated(args.n_frames, memory_capacity, process_state=process_state, all_steps=use_all_timesteps)
         self.replay_memory_sampler = torch.utils.data.DataLoader(self.replay_memory, batch_size=batch_size, shuffle=True)
         # self.training_metadata = utils.Training_Metadata(frame=self.sess.run(self.frames), frame_limit=learning_rate_drop_frame_limit,
         # 												   episode=self.sess.run(self.episode), num_episodes=num_episodes)
@@ -146,9 +145,11 @@ class DQN_Agent:
         X_act = states[-1].transpose(0,1).to(args.device)
         cur_state = (X_img[:-1], X_sensor[:,:-1], X_act[:-1])
         next_state = (X_img[1:], X_sensor[:, 1:], X_act[1:])
-        actions = X_act[1:].unsqueeze(-1) # as state actions are from t+1
-        rewards = rewards[...,None].to(args.device)
-        dones = dones[...,None].to(args.device)
+        actions = actions.transpose(0,1).unsqueeze(-1).to(args.device) # as state actions are from t+1
+        rewards = rewards.transpose(0,1).unsqueeze(-1).to(args.device)
+        dones = dones.transpose(0,1).unsqueeze(-1).to(args.device)
+        # print(actions.shape, rewards.shape, dones.shape, X_act.shape)
+        # print((X_act[1:].unsqueeze(-1) == actions).all())
 
         with torch.no_grad():
             self.dqn.eval() # don't use dropout when estimating targets
