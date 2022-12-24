@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(
 
 # EXPERIMENT PARAMETERS
 parser.add_argument('--process_state', action='store_true', help='Disables state processing and switches to default env. framestack processing')
+parser.add_argument('--rm_frame_skip', action='store_false', help='Disables frame skipping.')
 parser.add_argument('--accel', action='store_true', help='Pushes temporal states onto gpu on the same time. is faster if gpu has enough memory')
 parser.add_argument('--use_all_timesteps', action='store_true', help='Whether to use all timesteps for Q loss')
 parser.add_argument('--explore_frame_limit', type=int, default=250_000, help='The limit which the epsilon should decay towards.')
@@ -28,6 +29,9 @@ def parse_args():
     # process_state
     agent_setup['process_state'] = args.process_state
     carracing_setup['process_state'] = not args.process_state
+
+    # rm_frame_skip
+    carracing_setup['use_frame_skip'] = args.rm_frame_skip
 
 
     # use_all_timesteps
