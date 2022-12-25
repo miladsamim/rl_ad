@@ -162,7 +162,7 @@ class DQN_Agent:
         q_value = self.dqn(*cur_state, only_last=False)
         q_value = q_value.gather(2, actions)
 
-        loss = self.criterion(q_value, q_value_targets)
+        loss = self.criterion(q_value[-1], q_value_targets[-1]) # only do for single step
 
         self.optim.zero_grad()
         loss.backward()
