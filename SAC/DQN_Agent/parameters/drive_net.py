@@ -268,7 +268,15 @@ class DriveDQN_simple_fusion2_decoder(nn.Module):
         self.temporal_decoder_net = nn.TransformerEncoder(decoder_layer, num_layers=args.n_decs)
         self.positional_encoder = PositionalEncoding(d_model=args.h_size*2, max_len=64) # max number of time steps
     
-        self.out = nn.Linear(d_size, args.act_dim)
+        # self.out = nn.Linear(d_size, args.act_dim)
+        self.out = nn.Sequential(nn.Linear(d_size, 512),
+                                 nn.ReLU(),
+                                 nn.Linear(512, 512),
+                                 nn.ReLU(),
+                                 nn.Linear(512, d_size),
+                                 nn.ReLU(),
+                                 nn.Linear(d_size, args.act_dim)
+        )
         self.residual = args.residual
 
     def forward(self, X_img, X_sensor, X_act, only_last=True):
