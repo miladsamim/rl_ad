@@ -149,7 +149,7 @@ class DQN_Agent:
         rewards = rewards.transpose(0,1).unsqueeze(-1).to(args.device)
         dones = dones.transpose(0,1).unsqueeze(-1).to(args.device)
         # print(actions.shape, rewards.shape, dones.shape, X_act.shape)
-        # print((X_act[1:].unsqueeze(-1) == actions).all())
+        # print((X_act[1:].unsqueeze(-1) == actions).all()) 
 
         with torch.no_grad():
             self.dqn.eval() # don't use dropout when estimating targets
